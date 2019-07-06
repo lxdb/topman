@@ -1,0 +1,2268 @@
+#!/usr/bin/python3
+
+#   TopMan Laptop Linux Database Manager SV_DE(Scholl Version German)
+#   Copyright (C) 2019  Denys Konovalov (lxdb)
+
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+from PyQt5 import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+import sys
+import sqlite3
+import os
+
+app = QApplication(sys.argv)
+S_zahl=1
+S_zahl2=1
+
+
+
+icon1 = QIcon.fromTheme('folder')
+icon2 = QIcon.fromTheme('application-exit')
+icon3 = QIcon('/opt/topman/icons/database.svg')
+icon4 = QIcon.fromTheme('help-contents')
+icon5 = QIcon.fromTheme('go-next')
+icon6 = QIcon.fromTheme('go-previous')
+icon7 = QIcon('/opt/topman/icons/show.svg')
+icon8 = QIcon('/opt/topman/icons/send.svg')
+icon9 = QIcon('/opt/topman/icons/edit.svg')
+icon12 = QIcon.fromTheme('help-about')
+
+
+
+
+
+class ldb_window(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.initMe()
+        self.daten_abrufen()
+        self.daten_abrufen2()
+    
+    def initMe(self):
+
+        mainwidget = QWidget(self)
+
+        self.mainwlay = QVBoxLayout()
+        self.getslay = QVBoxLayout()
+        self.hwlay = QVBoxLayout()
+        self.grid3 = QGridLayout()
+        grid1 = QGridLayout()
+        grid2 = QGridLayout()
+        grid = QGridLayout()
+        grid.setSpacing(10)
+        grid2.setSpacing(10)
+        
+        self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.closetab)
+
+        maintab1 = QWidget(self)
+        self.writetab = QWidget(self)
+        gets = QWidget(self)
+        self.getsback = QWidget()
+        self.hwinfo = QWidget()
+
+        self.getsback.setLayout(self.getslay)
+        
+        
+        
+        
+        self.writetab.setLayout(grid1)
+        gets.setLayout(grid2)
+        
+        self.mainwlay.addWidget(self.tabs)
+        mainwidget.setLayout(self.mainwlay)
+        
+        self.tabs.addTab(maintab1, "Geräte")
+        self.tabs.addTab(self.writetab, "Gerät eintragen/entfernen")
+        self.tabs.addTab(gets, "Ausgeliehen")
+        self.tabs.addTab(self.getsback, "Gerät ausleihen/zurückgeben")
+        self.tabs.addTab(self.hwinfo, "SSH-Verbindung")
+        
+        self.striche2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        
+        self.striche3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        liact = QAction(QIcon(icon12),'Lizenz',self)
+        liact.triggered.connect(self.licacti)
+        liact.setToolTip('Die Lizenz für TopMan anzeigen')
+        liact.setStatusTip('Die Lizenz für TopMan anzeigen')
+         
+        tabpcadd = QAction(QIcon(icon9), "Gerät hinzufügen/entfernen", self)
+        tabpcadd.triggered.connect(self.addpctab)
+        tabpcadd.setToolTip("Gerät eintragen/entfernen")
+        tabpcadd.setStatusTip("Gerät eintragen/entfernen")
+     
+        tabgetsadd = QAction(QIcon.fromTheme('computer'), "Gerät ausleihen/zurückgeben", self)
+        tabgetsadd.triggered.connect(self.getstab)
+        tabgetsadd.setStatusTip("Gerät ausleihen/zurückgeben")
+        
+        
+        self.statusbar = self.statusBar()
+        self.menubar = self.menuBar()
+        self.toolbar = self.addToolBar('Tools')
+        self.toolbar.addAction(liact)
+        self.toolbar.addAction(tabpcadd)
+        self.toolbar.addAction(tabgetsadd)
+        
+        edit = self.menubar.addMenu('&Edit')
+        help = self.menubar.addMenu('&Help')
+        
+        
+        
+        
+        help.addAction(liact)
+        edit.addAction(tabpcadd)
+        edit.addAction(tabgetsadd)
+        self.menubar.setFixedHeight(23)
+
+        self.dbschrU = QLabel('Eintragen',self)
+        self.dbschrU.setFont(QFont("Noto Serif",14))
+        
+
+        
+        self.dbschrIdU = QLabel('Id',self)
+        self.dbschrDiU = QLabel('Marke',self)
+        self.dbschrVerU = QLabel('Modell',self)
+        self.dbschrKerU = QLabel('Betriebssystem',self)
+        self.dbschrHostU = QLabel('Hostname',self)
+        
+        self.dbschrId = QLineEdit(self)
+        self.dbschrDi = QLineEdit(self)
+        self.dbschrKer = QLineEdit(self)
+        self.dbschrVer = QLineEdit(self)
+        self.dbschrHost = QLineEdit(self)
+
+        self.dbschrB = QPushButton('Eintragen',self)
+        self.dbschrB.clicked.connect(self.db_schreiben)
+        self.dbschrB.setIcon(icon8)
+
+        self.delete = QLabel("Entfernen")
+        self.idlab = QLabel("ID")
+        self.delete.setFont(QFont("Noto Serif",14))
+        self.deleteID = QLineEdit(self)
+        self.lbutt  = QPushButton('Entfernen',self)
+        self.error = QLabel()
+        self.lbutt.clicked.connect(self.delete_id)
+        
+            
+        
+
+        Seite_E2=str(S_zahl)
+        self.Seite_E = QLineEdit(self)
+        self.Seite_E.setText(Seite_E2)
+        self.nach_button = QPushButton('',self)
+        self.nach_button.clicked.connect(self.nach)        
+        self.nach_button.setIcon(icon6)
+        
+        self.vor_button = QPushButton('',self)
+        self.vor_button.setIcon(icon5)
+        self.vor_button.clicked.connect(self.vor)
+        self.dbanU = QLabel("Geräte",self)
+        self.dbanU.setFont(QFont("Noto Serif",14))
+        
+        self.dbanB = QPushButton('&Datenbank aktualisieren',self)
+        self.tabL1 = QLabel('Id',self)
+        self.tabL2 = QLabel('Marke',self)
+        self.tabL3 = QLabel('Modell',self)
+        self.tabL4 = QLabel('Betriebssystem',self)
+        self.tabL5 = QLabel('Hostname',self)
+        self.tabL6 = QLabel('Status',self)
+        self.dbanB.clicked.connect(self.daten_abrufen)
+
+        self.dbanB.setIcon(icon7)
+        
+        
+        self.E_0_0 = QLineEdit(self)
+        self.E_0_1 = QLineEdit(self)
+        self.E_0_2 = QLineEdit(self)
+        self.E_0_3 = QLineEdit(self)
+        self.E_0_4 = QLineEdit(self)
+        self.E_0_5 = QLineEdit(self)
+
+        self.E_1_0 = QLineEdit(self)
+        self.E_1_1 = QLineEdit(self)
+        self.E_1_2 = QLineEdit(self)
+        self.E_1_3 = QLineEdit(self)
+        self.E_1_4 = QLineEdit(self)
+        self.E_1_5 = QLineEdit(self)
+
+        self.E_2_0 = QLineEdit(self)
+        self.E_2_1 = QLineEdit(self)
+        self.E_2_2 = QLineEdit(self)
+        self.E_2_3 = QLineEdit(self)
+        self.E_2_4 = QLineEdit(self)
+        self.E_2_5 = QLineEdit(self)
+
+        self.E_3_0 = QLineEdit(self)
+        self.E_3_1 = QLineEdit(self)
+        self.E_3_2 = QLineEdit(self)
+        self.E_3_3 = QLineEdit(self)
+        self.E_3_4 = QLineEdit(self)
+        self.E_3_5 = QLineEdit(self)
+
+        self.E_4_0 = QLineEdit(self)
+        self.E_4_1 = QLineEdit(self)
+        self.E_4_2 = QLineEdit(self)
+        self.E_4_3 = QLineEdit(self)
+        self.E_4_4 = QLineEdit(self)
+        self.E_4_5 = QLineEdit(self)
+
+        self.E_5_0 = QLineEdit(self)
+        self.E_5_1 = QLineEdit(self)
+        self.E_5_2 = QLineEdit(self)
+        self.E_5_3 = QLineEdit(self)
+        self.E_5_4 = QLineEdit(self)
+        self.E_5_5 = QLineEdit(self)
+
+        self.E_6_0 = QLineEdit(self)
+        self.E_6_1 = QLineEdit(self)
+        self.E_6_2 = QLineEdit(self)
+        self.E_6_3 = QLineEdit(self)
+        self.E_6_4 = QLineEdit(self)
+        self.E_6_5 = QLineEdit(self)
+
+        self.E_7_0 = QLineEdit(self)
+        self.E_7_1 = QLineEdit(self)
+        self.E_7_2 = QLineEdit(self)
+        self.E_7_3 = QLineEdit(self)
+        self.E_7_4 = QLineEdit(self)
+        self.E_7_5 = QLineEdit(self)
+
+        self.E_8_0 = QLineEdit(self)
+        self.E_8_1 = QLineEdit(self)
+        self.E_8_2 = QLineEdit(self)
+        self.E_8_3 = QLineEdit(self)
+        self.E_8_4 = QLineEdit(self)
+        self.E_8_5 = QLineEdit(self)
+
+        self.E_9_0 = QLineEdit(self)
+        self.E_9_1 = QLineEdit(self)
+        self.E_9_2 = QLineEdit(self)
+        self.E_9_3 = QLineEdit(self)
+        self.E_9_4 = QLineEdit(self)
+        self.E_9_5 = QLineEdit(self)
+
+        self.copyright = QLabel('''Copyright (C) 2019 <a href='https://lxdbdatabase.wordpress.com'>lxdb</a>''',self)
+        self.copyright.setOpenExternalLinks(True)
+
+
+        Seite_E2_2=str(S_zahl)
+        self.Seite_E_2 = QLineEdit(self)
+        self.Seite_E_2.setText(Seite_E2)
+        self.nach_button2 = QPushButton('',self)
+        self.nach_button2.clicked.connect(self.nach2)        
+        self.nach_button2.setIcon(icon6)
+        
+        self.vor_button2 = QPushButton('',self)
+        self.vor_button2.setIcon(icon5)
+        self.vor_button2.clicked.connect(self.vor2)
+        self.dbanU2 = QLabel("Ausgeliehen",self)
+        self.dbanU2.setFont(QFont("Noto Serif",14))
+        
+        self.dbanB2 = QPushButton('&Datenbank aktualisieren',self)
+        self.tabL12 = QLabel('Id',self)
+        self.tabL22 = QLabel('Vorname',self)
+        self.tabL32 = QLabel('Nachname',self)
+        self.tabL42 = QLabel('Klasse',self)
+        self.tabL52 = QLabel('Gerätenummer',self)
+        self.dbanB2.clicked.connect(self.daten_abrufen2)
+
+        self.dbanB2.setIcon(icon7)
+        
+        
+        self.E_0_02 = QLineEdit(self)
+        self.E_0_12 = QLineEdit(self)
+        self.E_0_22 = QLineEdit(self)
+        self.E_0_32 = QLineEdit(self)
+        self.E_0_42 = QLineEdit(self)
+
+        self.E_1_02 = QLineEdit(self)
+        self.E_1_12 = QLineEdit(self)
+        self.E_1_22 = QLineEdit(self)
+        self.E_1_32 = QLineEdit(self)
+        self.E_1_42 = QLineEdit(self)
+
+        self.E_2_02 = QLineEdit(self)
+        self.E_2_12 = QLineEdit(self)
+        self.E_2_22 = QLineEdit(self)
+        self.E_2_32 = QLineEdit(self)
+        self.E_2_42 = QLineEdit(self)
+
+        self.E_3_02 = QLineEdit(self)
+        self.E_3_12 = QLineEdit(self)
+        self.E_3_22 = QLineEdit(self)
+        self.E_3_32 = QLineEdit(self)
+        self.E_3_42 = QLineEdit(self)
+
+        self.E_4_02 = QLineEdit(self)
+        self.E_4_12 = QLineEdit(self)
+        self.E_4_22 = QLineEdit(self)
+        self.E_4_32 = QLineEdit(self)
+        self.E_4_42 = QLineEdit(self)
+
+        self.E_5_02 = QLineEdit(self)
+        self.E_5_12 = QLineEdit(self)
+        self.E_5_22 = QLineEdit(self)
+        self.E_5_32 = QLineEdit(self)
+        self.E_5_42 = QLineEdit(self)
+
+        self.E_6_02 = QLineEdit(self)
+        self.E_6_12 = QLineEdit(self)
+        self.E_6_22 = QLineEdit(self)
+        self.E_6_32 = QLineEdit(self)
+        self.E_6_42 = QLineEdit(self)
+
+        self.E_7_02 = QLineEdit(self)
+        self.E_7_12 = QLineEdit(self)
+        self.E_7_22 = QLineEdit(self)
+        self.E_7_32 = QLineEdit(self)
+        self.E_7_42 = QLineEdit(self)
+
+        self.E_8_02 = QLineEdit(self)
+        self.E_8_12 = QLineEdit(self)
+        self.E_8_22 = QLineEdit(self)
+        self.E_8_32 = QLineEdit(self)
+        self.E_8_42 = QLineEdit(self)
+
+        self.E_9_02 = QLineEdit(self)
+        self.E_9_12 = QLineEdit(self)
+        self.E_9_22 = QLineEdit(self)
+        self.E_9_32 = QLineEdit(self)
+        self.E_9_42 = QLineEdit(self)
+
+        self.wrt = QLabel("Gerät ausleihen")
+        self.wrt.setFont(QFont("Noto Serif",14))
+        self.idget = QLabel("ID")
+        self.idgete = QLineEdit()
+        self.name = QLabel("Vorname")
+        self.namee = QLineEdit()
+        self.sname = QLabel("Nachname")
+        self.snamee = QLineEdit()
+        self.klasse = QLabel("Klasse")
+        self.klassee = QLineEdit()
+        self.device = QLabel("Gerät")
+        self.devicee = QLineEdit()
+        self.buttget = QPushButton("Ausleihen")
+        self.buttget.clicked.connect(self.getdev)
+
+        self.dell = QLabel("Gerät zurückgeben")
+        self.dell.setFont(QFont("Noto Serif",14))
+        self.iddel = QLabel("ID")
+        self.iddele = QLineEdit()
+        self.buttdelg = QPushButton("Zurückgeben")
+        self.buttdelg.clicked.connect(self.giveback)
+
+        self.E_0_02.setReadOnly(True)
+        self.E_0_12.setReadOnly(True)
+        self.E_0_22.setReadOnly(True)
+        self.E_0_32.setReadOnly(True)
+        self.E_0_42.setReadOnly(True)
+
+        self.E_1_02.setReadOnly(True)
+        self.E_1_12.setReadOnly(True)
+        self.E_1_22.setReadOnly(True)
+        self.E_1_32.setReadOnly(True)
+        self.E_1_42.setReadOnly(True)
+
+        self.E_2_02.setReadOnly(True)
+        self.E_2_12.setReadOnly(True)
+        self.E_2_22.setReadOnly(True)
+        self.E_2_32.setReadOnly(True)
+        self.E_2_42.setReadOnly(True)
+
+        self.E_3_02.setReadOnly(True)
+        self.E_3_12.setReadOnly(True)
+        self.E_3_22.setReadOnly(True)
+        self.E_3_32.setReadOnly(True)
+        self.E_3_42.setReadOnly(True)
+
+        self.E_4_02.setReadOnly(True)
+        self.E_4_12.setReadOnly(True)
+        self.E_4_22.setReadOnly(True)
+        self.E_4_32.setReadOnly(True)
+        self.E_4_42.setReadOnly(True)
+
+        self.E_5_02.setReadOnly(True)
+        self.E_5_12.setReadOnly(True)
+        self.E_5_22.setReadOnly(True)
+        self.E_5_32.setReadOnly(True)
+        self.E_5_42.setReadOnly(True)
+
+        self.E_6_02.setReadOnly(True)
+        self.E_6_12.setReadOnly(True)
+        self.E_6_22.setReadOnly(True)
+        self.E_6_32.setReadOnly(True)
+        self.E_6_42.setReadOnly(True)
+
+        self.E_7_02.setReadOnly(True)
+        self.E_7_12.setReadOnly(True)
+        self.E_7_22.setReadOnly(True)
+        self.E_7_32.setReadOnly(True)
+        self.E_7_42.setReadOnly(True)
+
+        self.E_8_02.setReadOnly(True)
+        self.E_8_12.setReadOnly(True)
+        self.E_8_22.setReadOnly(True)
+        self.E_8_32.setReadOnly(True)
+        self.E_8_42.setReadOnly(True)
+
+        self.E_9_02.setReadOnly(True)
+        self.E_9_12.setReadOnly(True)
+        self.E_9_22.setReadOnly(True)
+        self.E_9_32.setReadOnly(True)
+        self.E_9_42.setReadOnly(True)
+
+
+        #grid.addWidget(self.tabs,0,0)
+        grid1.addWidget(self.dbschrU,0,0)
+
+        grid1.addItem(self.striche2,2,0)
+
+        
+        grid1.addWidget(self.dbschrIdU,5,0)
+        grid1.addWidget(self.dbschrId,6,0)
+        grid1.addWidget(self.dbschrDiU,7,0)
+        grid1.addWidget(self.dbschrDi,8,0)
+        grid1.addWidget(self.dbschrVerU,9,0)
+        grid1.addWidget(self.dbschrVer,10,0)
+        grid1.addWidget(self.dbschrKerU,11,0)
+        grid1.addWidget(self.dbschrKer,12,0)
+        grid1.addWidget(self.dbschrHostU,13,0)
+        grid1.addWidget(self.dbschrHost,14,0)
+        grid1.addWidget(self.dbschrB,15,0)
+        grid1.addWidget(self.delete,16,0)
+        grid1.addWidget(self.idlab,17,0)
+        grid1.addWidget(self.deleteID,18,0)
+        grid1.addWidget(self.lbutt,19,0)
+        grid1.addWidget(self.error,20,0)
+        
+        grid.addWidget(self.dbanU,1,2)
+
+        grid.addItem(self.striche3,2,2)
+
+        
+        grid.addWidget(self.dbanB,5,2)
+        
+        
+        grid.addWidget(self.tabL1,6,2)
+        grid.addWidget(self.tabL2,6,3)
+        grid.addWidget(self.tabL3,6,4)
+        grid.addWidget(self.tabL4,6,5)
+        grid.addWidget(self.tabL5,6,6)
+        grid.addWidget(self.tabL6,6,7)
+        grid.addWidget(self.nach_button,17,3)
+        grid.addWidget(self.vor_button,17,5)
+        grid.addWidget(self.Seite_E,17,4)
+        grid.addWidget(self.E_0_0,7,2)
+        grid.addWidget(self.E_0_1,7,3)
+        grid.addWidget(self.E_0_2,7,4)
+        grid.addWidget(self.E_0_3,7,5)
+        grid.addWidget(self.E_0_4,7,6)
+        grid.addWidget(self.E_0_5,7,7)
+        
+
+        grid.addWidget(self.E_1_0,8,2)
+        grid.addWidget(self.E_1_1,8,3)
+        grid.addWidget(self.E_1_2,8,4)
+        grid.addWidget(self.E_1_3,8,5)
+        grid.addWidget(self.E_1_4,8,6)
+        grid.addWidget(self.E_1_5,8,7)
+        
+        grid.addWidget(self.E_2_0,9,2)
+        grid.addWidget(self.E_2_1,9,3)
+        grid.addWidget(self.E_2_2,9,4)
+        grid.addWidget(self.E_2_3,9,5)
+        grid.addWidget(self.E_2_4,9,6)
+        grid.addWidget(self.E_2_5,9,7)
+
+        grid.addWidget(self.E_3_0,10,2)
+        grid.addWidget(self.E_3_1,10,3)
+        grid.addWidget(self.E_3_2,10,4)
+        grid.addWidget(self.E_3_3,10,5)
+        grid.addWidget(self.E_3_4,10,6)
+        grid.addWidget(self.E_3_5,10,7)
+
+        grid.addWidget(self.E_4_0,11,2)
+        grid.addWidget(self.E_4_1,11,3)
+        grid.addWidget(self.E_4_2,11,4)
+        grid.addWidget(self.E_4_3,11,5)
+        grid.addWidget(self.E_4_4,11,6)
+        grid.addWidget(self.E_4_5,11,7)
+
+        grid.addWidget(self.E_5_0,12,2)
+        grid.addWidget(self.E_5_1,12,3)
+        grid.addWidget(self.E_5_2,12,4)
+        grid.addWidget(self.E_5_3,12,5)
+        grid.addWidget(self.E_5_4,12,6)
+        grid.addWidget(self.E_5_5,12,7)
+
+        grid.addWidget(self.E_6_0,13,2)
+        grid.addWidget(self.E_6_1,13,3)
+        grid.addWidget(self.E_6_2,13,4)
+        grid.addWidget(self.E_6_3,13,5)
+        grid.addWidget(self.E_6_4,13,6)
+        grid.addWidget(self.E_6_5,13,7)
+
+        grid.addWidget(self.E_7_0,14,2)
+        grid.addWidget(self.E_7_1,14,3)
+        grid.addWidget(self.E_7_2,14,4)
+        grid.addWidget(self.E_7_3,14,5)
+        grid.addWidget(self.E_7_4,14,6)
+        grid.addWidget(self.E_7_5,14,7)
+
+        grid.addWidget(self.E_8_0,15,2)
+        grid.addWidget(self.E_8_1,15,3)
+        grid.addWidget(self.E_8_2,15,4)
+        grid.addWidget(self.E_8_3,15,5)
+        grid.addWidget(self.E_8_4,15,6)
+        grid.addWidget(self.E_8_5,15,7)
+
+        grid.addWidget(self.E_9_0,16,2)
+        grid.addWidget(self.E_9_1,16,3)
+        grid.addWidget(self.E_9_2,16,4)
+        grid.addWidget(self.E_9_3,16,5)
+        grid.addWidget(self.E_9_4,16,6)
+        grid.addWidget(self.E_9_5,16,7)
+
+        grid2.addWidget(self.dbanU2,0,2)
+
+        grid2.addItem(self.striche3,2,2)
+
+        
+        grid2.addWidget(self.dbanB2,5,2)
+        
+        
+        grid2.addWidget(self.tabL12,6,2)
+        grid2.addWidget(self.tabL22,6,3)
+        grid2.addWidget(self.tabL32,6,4)
+        grid2.addWidget(self.tabL42,6,5)
+        grid2.addWidget(self.tabL52,6,6)
+        grid2.addWidget(self.nach_button2,17,3)
+        grid2.addWidget(self.vor_button2,17,5)
+        grid2.addWidget(self.Seite_E_2,17,4)
+        grid2.addWidget(self.E_0_02,7,2)
+        grid2.addWidget(self.E_0_12,7,3)
+        grid2.addWidget(self.E_0_22,7,4)
+        grid2.addWidget(self.E_0_32,7,5)
+        grid2.addWidget(self.E_0_42,7,6)
+
+        grid2.addWidget(self.E_1_02,8,2)
+        grid2.addWidget(self.E_1_12,8,3)
+        grid2.addWidget(self.E_1_22,8,4)
+        grid2.addWidget(self.E_1_32,8,5)
+        grid2.addWidget(self.E_1_42,8,6)
+        
+        grid2.addWidget(self.E_2_02,9,2)
+        grid2.addWidget(self.E_2_12,9,3)
+        grid2.addWidget(self.E_2_22,9,4)
+        grid2.addWidget(self.E_2_32,9,5)
+        grid2.addWidget(self.E_2_42,9,6)
+
+        grid2.addWidget(self.E_3_02,10,2)
+        grid2.addWidget(self.E_3_12,10,3)
+        grid2.addWidget(self.E_3_22,10,4)
+        grid2.addWidget(self.E_3_32,10,5)
+        grid2.addWidget(self.E_3_42,10,6)
+
+        grid2.addWidget(self.E_4_02,11,2)
+        grid2.addWidget(self.E_4_12,11,3)
+        grid2.addWidget(self.E_4_22,11,4)
+        grid2.addWidget(self.E_4_32,11,5)
+        grid2.addWidget(self.E_4_42,11,6)
+
+        grid2.addWidget(self.E_5_02,12,2)
+        grid2.addWidget(self.E_5_12,12,3)
+        grid2.addWidget(self.E_5_22,12,4)
+        grid2.addWidget(self.E_5_32,12,5)
+        grid2.addWidget(self.E_5_42,12,6)
+
+        grid2.addWidget(self.E_6_02,13,2)
+        grid2.addWidget(self.E_6_12,13,3)
+        grid2.addWidget(self.E_6_22,13,4)
+        grid2.addWidget(self.E_6_32,13,5)
+        grid2.addWidget(self.E_6_42,13,6)
+
+        grid2.addWidget(self.E_7_02,14,2)
+        grid2.addWidget(self.E_7_12,14,3)
+        grid2.addWidget(self.E_7_22,14,4)
+        grid2.addWidget(self.E_7_32,14,5)
+        grid2.addWidget(self.E_7_42,14,6)
+
+        grid2.addWidget(self.E_8_02,15,2)
+        grid2.addWidget(self.E_8_12,15,3)
+        grid2.addWidget(self.E_8_22,15,4)
+        grid2.addWidget(self.E_8_32,15,5)
+        grid2.addWidget(self.E_8_42,15,6)    
+
+        grid2.addWidget(self.E_9_02,16,2)
+        grid2.addWidget(self.E_9_12,16,3)
+        grid2.addWidget(self.E_9_22,16,4)
+        grid2.addWidget(self.E_9_32,16,5)
+        grid2.addWidget(self.E_9_42,16,6)
+        self.getslay.addWidget(self.wrt)
+        self.getslay.addWidget(self.idget)
+        self.getslay.addWidget(self.idgete)
+        self.getslay.addWidget(self.name)
+        self.getslay.addWidget(self.namee)
+        self.getslay.addWidget(self.sname)
+        self.getslay.addWidget(self.snamee)
+        self.getslay.addWidget(self.klasse)
+        self.getslay.addWidget(self.klassee)
+        self.getslay.addWidget(self.device)
+        self.getslay.addWidget(self.devicee)
+        self.getslay.addWidget(self.buttget)
+        self.getslay.addWidget(self.dell)
+        self.getslay.addWidget(self.iddel)
+        self.getslay.addWidget(self.iddele)
+        self.getslay.addWidget(self.buttdelg)
+
+        self.hwU = QLabel("SSH-Verbindung")
+        self.hwU.setFont(QFont("Noto Serif",14))
+        self.hwID = QLabel("Geräte-ID")
+        self.hwIDe = QLineEdit()
+        self.spacer = QTextEdit()
+        self.spacer.setReadOnly(True)
+        
+        self.hwButt = QPushButton("Verbinden")
+        self.hwButt.clicked.connect(self.hwinfo_get)
+        
+
+
+        
+        self.grid3.addWidget(self.hwID,1,0)
+        self.grid3.addWidget(self.hwIDe,1,1)
+
+        self.hwlay.addWidget(self.hwU)
+        self.hwlay.addLayout(self.grid3)
+        self.hwlay.addWidget(self.hwButt)
+        self.hwlay.addWidget(self.spacer)
+        
+
+        self.hwinfo.setLayout(self.hwlay)
+        
+
+        self.mainwlay.addWidget(self.copyright)               
+
+        maintab1.setLayout(grid)
+
+        
+
+        
+        self.setCentralWidget(mainwidget)
+        self.setWindowTitle("TopMan Laptop Manager")
+        self.setWindowIcon(QIcon.fromTheme("computer"))
+        self.show()
+    def addpctab(self):
+        pctab = self.tabs.addTab(self.writetab, "Gerät eintragen/entfernen")
+        self.tabs.setCurrentIndex(pctab)
+    def closetab(self, i2):
+        if self.tabs.count() < 2:
+            return
+        self.tabs.removeTab(i2)
+
+    def getdev(self):
+        print("Gerät wird ausgeliehen ...")
+        db_name2="/opt/topman/computers.db"
+        connection = sqlite3.connect(db_name2)
+        cursor= connection.cursor()
+        name = self.namee.text()
+        sname = self.snamee.text()
+        klasse = self.klassee.text()
+        device = self.devicee.text()
+    
+
+        
+        id_text=self.idgete.text()
+        sql_text=""
+        sql_text += "INSERT INTO Ausgeliehen VALUES ("
+        sql_text +=id_text+","
+        sql_text +=" '"+name+"',"
+        sql_text +=" '"+sname+"',"
+        sql_text +=" '"+klasse+"',"
+        sql_text +=" '"+device+"')"
+        
+        
+    
+    
+        print("sql_text ", sql_text)
+        cursor.execute(sql_text)
+
+        cursor.execute("UPDATE Laptops SET status='nicht verfuegbar' WHERE id=" + device)
+    
+        connection.commit()
+        connection.close()
+        
+        self.daten_abrufen()
+        self.daten_abrufen2()
+        
+    def db_schreiben(self):
+        print("Daten werden eingetragen ...")
+        db_name2="/opt/topman/computers.db"
+        connection = sqlite3.connect(db_name2)
+        cursor= connection.cursor()
+        Brand=self.dbschrDi.text()
+        Model=self.dbschrVer.text()
+        OS=self.dbschrKer.text()
+        Host=self.dbschrHost.text()
+    
+
+        
+        id_text=self.dbschrId.text()
+        sql_text=""
+        sql_text += "INSERT INTO Laptops VALUES ("
+        sql_text +=id_text+","
+        sql_text +=" '"+Brand+"',"
+        sql_text +=" '"+Model+"',"
+        sql_text +=" '"+OS+"',"
+        sql_text +=" '"+Host+"',"
+        sql_text +=" 'frei')"
+        
+    
+    
+        print("sql_text ", sql_text)
+        cursor.execute(sql_text)
+        
+        connection.commit()
+        connection.close()
+        print("ggg")
+        self.daten_abrufen()
+    
+    def delete_id(self):
+        id_text = self.deleteID.text()
+        db_name = "/opt/topman/computers.db"
+
+        if id_text == "":
+            self.error.setText("Keine ID angegeben")
+        else:
+            self.error.setText("")
+            connection = sqlite3.connect(db_name)
+            cursor = connection.cursor()
+            cursor.execute("DELETE FROM Laptops WHERE id=" + id_text)
+            connection.commit()
+            connection.close()
+            self.daten_abrufen()
+
+    def giveback(self):
+        id_text = self.iddele.text()
+        db_name = "/opt/topman/computers.db"
+
+        if id_text == "":
+            self.error.setText("Keine ID angegeben")
+        else:
+            self.error.setText("")
+            connection = sqlite3.connect(db_name)
+            cursor = connection.cursor()
+            cursor.execute("SELECT device FROM Ausgeliehen WHERE id=" + id_text)
+            device = cursor.fetchone()
+            print(str(device[0]))
+            cursor.execute("UPDATE Laptops SET status='frei' WHERE id=" + str(device[0]))
+            cursor.execute("DELETE FROM Ausgeliehen WHERE id=" + id_text)
+            connection.commit()
+            connection.close()
+            self.daten_abrufen()
+            self.daten_abrufen2()
+            
+    def nach(self):
+        global S_zahl
+        S_zahl=int(self.Seite_E.text())
+        if (S_zahl>2):
+            S_zahl=S_zahl-1
+            print('Seite: ',S_zahl)
+
+        else:
+            S_zahl=1
+        
+        S_zahl1=str(S_zahl)
+        self.Seite_E.clear()
+        self.Seite_E.setText(S_zahl1)
+        self.daten_abrufen()
+
+    def nach2(self):
+        global S_zahl2
+        S_zahl2=int(self.Seite_E_2.text())
+        if (S_zahl2>2):
+            S_zahl2=S_zahl2-1
+            print('Seite: ',S_zahl2)
+
+        else:
+            S_zahl2=1
+        
+        S_zahl1=str(S_zahl2)
+        self.Seite_E_2.clear()
+        self.Seite_E_2.setText(S_zahl1)
+        self.daten_abrufen2()
+        
+    def help2(self):
+        helpw.show()
+
+    def daten_abrufen(self):
+        
+        print("--------------------------")
+        global S_zahl
+        print("S_zahl ", S_zahl)
+        
+        db_name2= "/opt/topman/computers.db"
+        print(db_name2)
+        connection = sqlite3.connect(db_name2)
+        cursor= connection.cursor()
+        sql = "SELECT * FROM Laptops"
+        cursor.execute(sql)
+        
+        text=""
+        spalte=[]
+        reihe=[]
+    
+        i=0
+        for row in cursor:
+        
+
+
+            r0=str(row[0])
+            r1=str(row[1])
+            r2=str(row[2])
+            r3=str(row[3])
+            r4=str(row[4])
+            r5=str(row[5])
+        
+        
+            spalte = [(r0, r1, r2, r3, r4, r5)]
+            reihe.extend(spalte)
+        
+
+    
+        connection.commit()
+        connection.close()
+        print("len(spalte)", len(spalte))
+        print("len(reihe)", len(reihe))
+        x=len(reihe)
+
+        #Reihe 0
+        i=0
+        self.E_0_0.clear()    
+        k=0+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_0.setText(x)
+        except:
+            self.E_0_0.setText("")
+
+
+        i=1
+        self.E_0_1.clear()    
+        k=0+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_0_1.setText(x)
+        except:
+            self.E_0_1.setText("")
+        
+
+        i=2
+        self.E_0_2.clear()    
+        k=0+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_2.setText(x)
+        except:
+            self.E_0_2.setText("")
+        
+
+        i=3
+        self.E_0_3.clear()    
+        k=0+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_3.setText(x)
+        except:
+            self.E_0_3.setText("")
+
+
+        i=4
+        self.E_0_4.clear()    
+        k=0+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_4.setText(x)
+        except:
+            self.E_0_4.setText("")
+
+
+        i=5
+        self.E_0_5.clear()    
+        k=0+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_5.setText(x)
+        except:
+            self.E_0_5.setText("")    
+        
+
+    
+    
+
+        #Reihe1
+        i=0
+        self.E_1_0.clear()    
+        k=1+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_0.setText(x)
+        except:
+            self.E_1_0.setText("")
+
+
+        i=1
+        self.E_1_1.clear()    
+        k=1+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_1_1.setText(x)
+        except:
+            self.E_1_1.setText("")
+        
+
+        i=2
+        self.E_1_2.clear()    
+        k=1+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_2.setText(x)
+        except:
+            self.E_1_2.setText("")
+        
+
+        i=3
+        self.E_1_3.clear()    
+        k=1+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_3.setText(x)
+        except:
+            self.E_1_3.setText("")
+
+
+        i=4
+        self.E_1_4.clear()    
+        k=1+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_4.setText(x)
+        except:
+            self.E_1_4.setText("")
+        
+
+        i=5
+        self.E_1_5.clear()    
+        k=1+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_5.setText(x)
+        except:
+            self.E_1_5.setText("")
+
+        #Reihe2
+        i=0
+        self.E_2_0.clear()    
+        k=2+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_0.setText(x)
+        except:
+            self.E_2_0.setText("")
+
+
+        i=1
+        self.E_2_1.clear()    
+        k=2+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_2_1.setText(x)
+        except:
+            self.E_2_1.insert("")
+        
+
+        i=2
+        self.E_2_2.clear()    
+        k=2+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_2.setText(x)
+        except:
+            self.E_2_2.setText("")
+        
+
+        i=3
+        self.E_2_3.clear()    
+        k=2+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_3.setText(x)
+        except:
+            self.E_2_3.setText("")
+
+
+        i=4
+        self.E_2_4.clear()    
+        k=2+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_4.setText(x)
+        except:
+            self.E_2_4.setText("")
+        
+
+        i=5
+        self.E_2_5.clear()    
+        k=2+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_5.setText(x)
+        except:
+            self.E_2_5.setText("")
+
+
+        #Reihe3
+        i=0
+        self.E_3_0.clear()    
+        k=3+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_0.setText(x)
+        except:
+            self.E_3_0.setText("")
+
+
+        i=1
+        self.E_3_1.clear()    
+        k=3+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_3_1.setText(x)
+        except:
+            self.E_3_1.setText("")
+        
+
+        i=2
+        self.E_3_2.clear()    
+        k=3+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_2.setText(x)
+        except:
+            self.E_3_2.setText("")
+        
+
+        i=3
+        self.E_3_3.clear()    
+        k=3+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_3.setText(x)
+        except:
+            self.E_3_3.setText("")
+
+
+
+        i=4
+        self.E_3_4.clear()    
+        k=3+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_4.setText(x)
+        except:
+            self.E_3_4.setText("")
+
+
+        i=4
+        self.E_3_5.clear()    
+        k=3+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_5.setText(x)
+        except:
+            self.E_3_5.setText("")
+
+    
+
+        #Reihe4
+        i=0
+        self.E_4_0.clear()    
+        k=4+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_0.setText(x)
+        except:
+            self.E_4_0.setText("")
+
+
+        i=1
+        self.E_4_1.clear()    
+        k=4+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_4_1.setText(x)
+        except:
+            self.E_4_1.setText("")
+        
+
+        i=2
+        self.E_4_2.clear()    
+        k=4+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_2.setText(x)
+        except:
+            self.E_4_2.setText("")
+        
+
+        i=3
+        self.E_4_3.clear()    
+        k=4+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_3.setText(x)
+        except:
+            self.E_4_3.setText("")
+
+
+        i=4
+        self.E_4_4.clear()    
+        k=4+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_4.setText(x)
+        except:
+            self.E_4_4.setText("")
+        
+
+        i=5
+        self.E_4_5.clear()    
+        k=4+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_5.setText(x)
+        except:
+            self.E_4_5.setText("")
+    
+        #Reihe5
+        i=0
+        self.E_5_0.clear()    
+        k=5+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_0.setText(x)
+        except:
+            self.E_5_0.setText("")
+
+
+        i=1
+        self.E_5_1.clear()   
+        k=5+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_5_1.setText(x)
+        except:
+            self.E_5_1.setText("")
+        
+
+        i=2
+        self.E_5_2.clear()    
+        k=5+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_2.setText(x)
+        except:
+            self.E_5_2.setText("")
+        
+
+        i=3
+        self.E_5_3.clear()   
+        k=5+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_3.setText(x)
+        except:
+            self.E_5_3.setText("")
+
+
+        i=4
+        self.E_5_4.clear()   
+        k=5+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_4.setText(x)
+        except:
+            self.E_5_4.setText("")
+        
+
+        i=5
+        self.E_5_5.clear()   
+        k=5+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_5.setText(x)
+        except:
+            self.E_5_5.setText("")
+   
+
+
+        #Reihe6
+        i=0
+        self.E_6_0.clear()  
+        k=6+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_0.setText(x)
+        except:
+            self.E_6_0.setText("")
+
+
+        
+
+
+        i=1
+        self.E_6_1.clear() 
+        k=6+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_6_1.setText(x)
+        except:
+            self.E_6_1.setText("")
+        
+
+        i=2
+        self.E_6_2.clear()    
+        k=6+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_2.setText(x)
+        except:
+            self.E_6_2.setText("")
+        
+
+        i=3
+        self.E_6_3.clear()    
+        k=6+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_3.setText(x)
+        except:
+            self.E_6_3.setText("")
+
+
+        i=4
+        self.E_6_4.clear()    
+        k=6+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_4.setText(x)
+        except:
+            self.E_6_4.setText("")
+        
+
+        i=5
+        self.E_6_5.clear()    
+        k=6+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_5.setText(x)
+        except:
+            self.E_6_5.setText("")
+   
+        #Reihe7
+        i=0
+        self.E_7_0.clear()   
+        k=7+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_0.setText(x)
+        except:
+            self.E_7_0.setText("")
+
+
+        i=1
+        self.E_7_1.clear()    
+        k=7+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_7_1.setText(x)
+        except:
+            self.E_7_1.setText("")
+        
+
+        i=2
+        self.E_7_2.clear()    
+        k=7+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_2.setText(x)
+        except:
+            self.E_7_2.setText("")
+        
+
+        i=3
+        self.E_7_3.clear()    
+        k=7+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_3.setText(x)
+        except:
+            self.E_7_3.setText("")
+
+
+        i=4
+        self.E_7_4.clear()    
+        k=7+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_4.setText(x)
+        except:
+            self.E_7_4.setText("")
+        
+
+        i=5
+        self.E_7_5.clear()    
+        k=7+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_5.setText(x)
+        except:
+            self.E_7_5.setText("")
+
+        #Reihe8
+        i=0
+        self.E_8_0.clear()    
+        k=8+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_0.setText(x)
+        except:
+            self.E_8_0.setText("")
+
+
+        i=1
+        self.E_8_1.clear()    
+        k=8+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_8_1.setText(x)
+        except:
+            self.E_8_1.setText("")
+        
+
+        i=2
+        self.E_8_2.clear()    
+        k=8+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_2.setText(x)
+        except:
+            self.E_8_2.setText("")
+        
+
+        i=3
+        self.E_8_3.clear()    
+        k=8+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_3.setText(x)
+        except:
+            self.E_8_3.setText("")
+
+
+        i=4
+        self.E_8_4.clear()    
+        k=8+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_4.setText(x)
+        except:
+            self.E_8_4.setText("")
+        
+        i=5
+        self.E_8_5.clear()    
+        k=8+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_5.setText(x)
+        except:
+            self.E_8_5.setText("")
+            
+
+        #Reihe9
+        i=0
+        self.E_9_0.clear()    
+        k=9+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_0.setText(x)
+        except:
+            self.E_9_0.setText("")
+
+
+        i=1
+        self.E_9_1.clear()   
+        k=9+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_9_1.setText(x)
+        except:
+            self.E_9_1.setText("")
+        
+
+        i=2
+        self.E_9_2.clear()   
+        k=9+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_2.setText(x)
+        except:
+            self.E_9_2.setText("")
+        
+
+        i=3
+        self.E_9_3.clear()    
+        k=9+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_3.setText(x)
+        except:
+            self.E_9_3.setText("")
+
+
+        i=4
+        self.E_9_4.clear()    
+        k=9+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_4.setText(x)
+        except:
+            self.E_9_4.setText("")
+
+
+
+        i=5
+        self.E_9_5.clear()    
+        k=9+(S_zahl-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_5.setText(x)
+        except:
+            self.E_9_5.setText("")
+
+    def daten_abrufen2(self):
+        
+        print("--------------------------")
+        global S_zahl2
+        print("S_zahl2 ", S_zahl2)
+        
+        db_name2= "/opt/topman/computers.db"
+        print(db_name2)
+        connection = sqlite3.connect(db_name2)
+        cursor= connection.cursor()
+        sql = "SELECT * FROM Ausgeliehen"
+        cursor.execute(sql)
+        
+        text=""
+        spalte=[]
+        reihe=[]
+    
+        i=0
+        for row in cursor:
+        
+
+
+            r0=str(row[0])
+            r1=str(row[1])
+            r2=str(row[2])
+            r3=str(row[3])
+            r4=str(row[4])
+        
+        
+            spalte = [(r0, r1, r2, r3, r4)]
+            reihe.extend(spalte)
+        
+
+    
+        connection.commit()
+        connection.close()
+        print("len(spalte)", len(spalte))
+        print("len(reihe)", len(reihe))
+        x=len(reihe)
+
+        #Reihe 0
+        i=0
+        self.E_0_02.clear()    
+        k=0+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_02.setText(x)
+        except:
+            self.E_0_02.setText("")
+
+
+        i=1
+        self.E_0_12.clear()    
+        k=0+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_0_12.setText(x)
+        except:
+            self.E_0_12.setText("")
+        
+
+        i=2
+        self.E_0_22.clear()    
+        k=0+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_22.setText(x)
+        except:
+            self.E_0_22.setText("")
+        
+
+        i=3
+        self.E_0_32.clear()    
+        k=0+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_32.setText(x)
+        except:
+            self.E_0_32.setText("")
+
+
+        i=4
+        self.E_0_42.clear()    
+        k=0+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_0_42.setText(x)
+        except:
+            self.E_0_42.setText("")
+        
+
+    
+    
+
+        #Reihe1
+        i=0
+        self.E_1_02.clear()    
+        k=1+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_02.setText(x)
+        except:
+            self.E_1_02.setText("")
+
+
+        i=1
+        self.E_1_12.clear()    
+        k=1+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_1_12.setText(x)
+        except:
+            self.E_1_12.setText("")
+        
+
+        i=2
+        self.E_1_22.clear()    
+        k=1+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_22.setText(x)
+        except:
+            self.E_1_22.setText("")
+        
+
+        i=3
+        self.E_1_32.clear()    
+        k=1+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_32.setText(x)
+        except:
+            self.E_1_32.setText("")
+
+
+        i=4
+        self.E_1_42.clear()    
+        k=1+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_1_42.setText(x)
+        except:
+            self.E_1_42.setText("")
+        
+
+   
+
+        #Reihe2
+        i=0
+        self.E_2_02.clear()    
+        k=2+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_02.setText(x)
+        except:
+            self.E_2_02.setText("")
+
+
+        i=1
+        self.E_2_12.clear()    
+        k=2+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_2_12.setText(x)
+        except:
+            self.E_2_12.insert("")
+        
+
+        i=2
+        self.E_2_22.clear()    
+        k=2+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_22.setText(x)
+        except:
+            self.E_2_22.setText("")
+        
+
+        i=3
+        self.E_2_32.clear()    
+        k=2+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_32.setText(x)
+        except:
+            self.E_2_32.setText("")
+
+
+        i=4
+        self.E_2_42.clear()    
+        k=2+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_2_42.setText(x)
+        except:
+            self.E_2_42.setText("")
+        
+
+    
+
+
+        #Reihe3
+        i=0
+        self.E_3_02.clear()    
+        k=3+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_02.setText(x)
+        except:
+            self.E_3_02.setText("")
+
+
+        i=1
+        self.E_3_12.clear()    
+        k=3+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_3_12.setText(x)
+        except:
+            self.E_3_12.setText("")
+        
+
+        i=2
+        self.E_3_22.clear()    
+        k=3+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_22.setText(x)
+        except:
+            self.E_3_22.setText("")
+        
+
+        i=3
+        self.E_3_32.clear()    
+        k=3+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_32.setText(x)
+        except:
+            self.E_3_32.setText("")
+
+
+
+        i=4
+        self.E_3_42.clear()    
+        k=3+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_3_42.setText(x)
+        except:
+            self.E_3_42.setText("")
+        
+
+    
+
+        #Reihe4
+        i=0
+        self.E_4_02.clear()    
+        k=4+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_02.setText(x)
+        except:
+            self.E_4_02.setText("")
+
+
+        i=1
+        self.E_4_12.clear()    
+        k=4+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_4_12.setText(x)
+        except:
+            self.E_4_12.setText("")
+        
+
+        i=2
+        self.E_4_22.clear()    
+        k=4+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_22.setText(x)
+        except:
+            self.E_4_22.setText("")
+        
+
+        i=3
+        self.E_4_32.clear()    
+        k=4+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_32.setText(x)
+        except:
+            self.E_4_32.setText("")
+
+
+        i=4
+        self.E_4_42.clear()    
+        k=4+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_4_42.setText(x)
+        except:
+            self.E_4_42.setText("")
+        
+
+    
+        #Reihe5
+        i=0
+        self.E_5_02.clear()    
+        k=5+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_02.setText(x)
+        except:
+            self.E_5_02.setText("")
+
+
+        i=1
+        self.E_5_12.clear()   
+        k=5+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_5_12.setText(x)
+        except:
+            self.E_5_12.setText("")
+        
+
+        i=2
+        self.E_5_22.clear()    
+        k=5+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_22.setText(x)
+        except:
+            self.E_5_22.setText("")
+        
+
+        i=3
+        self.E_5_32.clear()   
+        k=5+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_32.setText(x)
+        except:
+            self.E_5_32.setText("")
+
+
+        i=4
+        self.E_5_42.clear()   
+        k=5+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_5_42.setText(x)
+        except:
+            self.E_5_42.setText("")
+        
+
+   
+
+
+        #Reihe6
+        i=0
+        self.E_6_02.clear()  
+        k=6+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_02.setText(x)
+        except:
+            self.E_6_02.setText("")
+
+
+        i=1
+        self.E_6_12.clear() 
+        k=6+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_6_12.setText(x)
+        except:
+            self.E_6_12.setText("")
+        
+
+        i=2
+        self.E_6_22.clear()    
+        k=6+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_22.setText(x)
+        except:
+            self.E_6_22.setText("")
+        
+
+        i=3
+        self.E_6_32.clear()    
+        k=6+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_32.setText(x)
+        except:
+            self.E_6_32.setText("")
+
+
+        i=4
+        self.E_6_42.clear()    
+        k=6+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_6_42.setText(x)
+        except:
+            self.E_6_42.setText("")
+        
+
+   
+        #Reihe7
+        i=0
+        self.E_7_02.clear()   
+        k=7+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_02.setText(x)
+        except:
+            self.E_7_02.setText("")
+
+
+        i=1
+        self.E_7_12.clear()    
+        k=7+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_7_12.setText(x)
+        except:
+            self.E_7_12.setText("")
+        
+
+        i=2
+        self.E_7_22.clear()    
+        k=7+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_22.setText(x)
+        except:
+            self.E_7_22.setText("")
+        
+
+        i=3
+        self.E_7_32.clear()    
+        k=7+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_32.setText(x)
+        except:
+            self.E_7_32.setText("")
+
+
+        i=4
+        self.E_7_42.clear()    
+        k=7+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_7_42.setText(x)
+        except:
+            self.E_7_42.setText("")
+        
+
+   
+
+        #Reihe8
+        i=0
+        self.E_8_02.clear()    
+        k=8+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_02.setText(x)
+        except:
+            self.E_8_02.setText("")
+
+
+        i=1
+        self.E_8_12.clear()    
+        k=8+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_8_12.setText(x)
+        except:
+            self.E_8_12.setText("")
+        
+
+        i=2
+        self.E_8_22.clear()    
+        k=8+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_22.setText(x)
+        except:
+            self.E_8_22.setText("")
+        
+
+        i=3
+        self.E_8_32.clear()    
+        k=8+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_32.setText(x)
+        except:
+            self.E_8_32.setText("")
+
+
+        i=4
+        self.E_8_42.clear()    
+        k=8+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_8_42.setText(x)
+        except:
+            self.E_8_42.setText("")
+        
+
+    
+
+        #Reihe9
+        i=0
+        self.E_9_02.clear()    
+        k=9+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_02.setText(x)
+        except:
+            self.E_9_02.setText("")
+
+
+        i=1
+        self.E_9_12.clear()   
+        k=9+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            print("x ",x)
+            self.E_9_12.setText(x)
+        except:
+            self.E_9_12.setText("")
+        
+
+        i=2
+        self.E_9_22.clear()   
+        k=9+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_22.setText(x)
+        except:
+            self.E_9_22.setText("")
+        
+
+        i=3
+        self.E_9_32.clear()    
+        k=9+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_32.setText(x)
+        except:
+            self.E_9_32.setText("")
+
+
+        i=4
+        self.E_9_42.clear()    
+        k=9+(S_zahl2-1)*10
+        x=""
+        try:
+            x=str(reihe[k][i])
+            self.E_9_42.setText(x)
+        except:
+            self.E_9_42.setText("")
+
+
+        
+    
+    def vor(self):
+        print("vor")
+        global S_zahl
+        S_zahl=int(self.Seite_E.text())
+    
+        S_zahl=S_zahl+1
+
+
+        S_zahl5 = str(S_zahl)
+        self.Seite_E.clear()
+        self.Seite_E.setText(S_zahl5)
+        self.daten_abrufen()
+
+    def vor2(self):
+        
+            
+        print("vor2")
+        global S_zahl2
+        S_zahl2=int(self.Seite_E_2.text())
+        if self.E_9_02.text() == "":
+            S_zahl2 = S_zahl2
+        else:
+            S_zahl2=S_zahl2+1
+
+
+        S_zahl5 = str(S_zahl2)
+        self.Seite_E_2.clear()
+        self.Seite_E_2.setText(S_zahl5)
+        self.daten_abrufen2()        
+
+    def licacti(self):
+        liw.show()
+
+    def getstab(self):
+        getstab1 = self.tabs.addTab(self.getsback, "Gerät ausleihen/zurückgeben")
+        self.tabs.setCurrentIndex(getstab1)
+
+    def hwinfo_get(self):
+        db_name = "/opt/topman/computers.db"
+        print(db_name)
+        connection = sqlite3.connect(db_name)
+        print(connection)
+        cursor = connection.cursor()
+        print(cursor)
+        id_text = self.hwIDe.text()
+        print(id_text)
+        cursor.execute("SELECT Hostname FROM Laptops WHERE id=" + id_text)
+        hostname = cursor.fetchone()
+        
+        print(hostname)
+        hostname = str(hostname[0])
+        print(hostname)
+        connection.commit()
+        connection.close()
+        
+        get = os.system("gnome-terminal -e 'ssh user@" + hostname + "' || xfce4-terminal -e 'ssh user@" + hostname + "'")
+        
+        
+
+        
+
+
+box1 = QVBoxLayout()
+liL = QLabel('Lizenz')
+
+
+litext = QTextEdit()
+box1.addWidget(liL)
+box1.addWidget(litext)
+
+try:
+    with open('/opt/topman/gpl3.txt', 'r') as f:
+        text = f.read()
+
+
+except Exception as e:
+    dialog_critical(str(e))
+
+else:
+    path = '/opt/topman/gpl3.txt'
+    litext.setPlainText(text)
+
+liw = QWidget()
+liw.setLayout(box1)
+litext.setReadOnly(True)
+liw.setGeometry(500,500,500,500)
+liw.setWindowTitle("TopMan v1.0 license")
+liw.setWindowIcon(QIcon(icon12))
+   
+
+
+
+
+
+
+window=ldb_window()
+grid1 = QGridLayout()
+grid1.setSpacing(10)
+sys.exit(app.exec_())

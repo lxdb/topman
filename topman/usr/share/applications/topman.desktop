@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=TopMan
+Comment=TopMan Laptop Manager v1.0
+Exec=/usr/bin/topman
+Terminal=true
+Icon=computer
+Type=Application
+Categories=System;Utility;
+GenericName[de_DE]=TopMan Laptop Manager v1.0
+
