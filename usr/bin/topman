@@ -114,6 +114,8 @@ class ldb_window(QMainWindow):
         
         self.statusbar = self.statusBar()
         self.menubar = self.menuBar()
+        
+        self.menubar.setFixedHeight(30)
         self.toolbar = self.addToolBar('Tools')
         self.toolbar.addAction(liact)
         self.toolbar.addAction(tabpcadd)
@@ -128,7 +130,7 @@ class ldb_window(QMainWindow):
         help.addAction(liact)
         edit.addAction(tabpcadd)
         edit.addAction(tabgetsadd)
-        self.menubar.setFixedHeight(23)
+        
 
         self.dbschrU = QLabel('Eintragen',self)
         self.dbschrU.setFont(QFont("Noto Serif",14))
@@ -633,6 +635,8 @@ class ldb_window(QMainWindow):
 
         self.hwU = QLabel("SSH-Verbindung")
         self.hwU.setFont(QFont("Noto Serif",14))
+        self.un = QLabel("Benutzername")
+        self.une = QLineEdit()
         self.hwID = QLabel("Geräte-ID")
         self.hwIDe = QLineEdit()
         self.spacer = QTextEdit()
@@ -643,9 +647,10 @@ class ldb_window(QMainWindow):
         
 
 
-        
-        self.grid3.addWidget(self.hwID,1,0)
-        self.grid3.addWidget(self.hwIDe,1,1)
+        self.grid3.addWidget(self.un,1,0)
+        self.grid3.addWidget(self.hwID,1,1)
+        self.grid3.addWidget(self.une,2,0)
+        self.grid3.addWidget(self.hwIDe,2,1)
 
         self.hwlay.addWidget(self.hwU)
         self.hwlay.addLayout(self.grid3)
@@ -2215,14 +2220,14 @@ class ldb_window(QMainWindow):
         print(id_text)
         cursor.execute("SELECT Hostname FROM Laptops WHERE id=" + id_text)
         hostname = cursor.fetchone()
-        
+        username = self.une.text()
         print(hostname)
         hostname = str(hostname[0])
         print(hostname)
         connection.commit()
         connection.close()
         
-        get = os.system("gnome-terminal -e 'ssh user@" + hostname + "' || xfce4-terminal -e 'ssh user@" + hostname + "'")
+        get = os.system("gnome-terminal -e 'ssh " + username + "@" + hostname + "' || xfce4-terminal -e 'ssh user@" + hostname + "'")
         
         
 
