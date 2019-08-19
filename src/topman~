@@ -1,0 +1,2321 @@
+#!/usr/bin/env python3
+# -*- Mode: Python; coding: utf-8; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- 
+#
+# main.py
+# Copyright (C) 2019 LXDB <service@lxdb.de>
+# 
+# TopMan is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# TopMan is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+import gi 
+
+gi.require_version('Gtk','3.0')
+
+from gi.repository import Gtk, GdkPixbuf, Gdk
+
+import os, sys, sqlite3
+from datetime import date
+
+os.system("bash /usr/local/share/topman/file.py")
+
+today = date.today()
+today_date = today.strftime("%d/%m/%Y")
+
+db = "/usr/local/share/topman/database.db"
+
+s_zahl_0 = 1
+s_zahl_1 = 1
+s_zahl_2 = 1
+
+#Comment the first line and uncomment the second before installing
+#or making the tarball (alternatively, use project variables)
+#UI_FILE = "src/topman.ui"
+UI_FILE = "/usr/local/share/topman/ui/topman.ui"
+builder = Gtk.Builder()
+builder.add_from_file(UI_FILE)
+
+window = builder.get_object('mainWindow')
+
+
+
+class Handler:
+    def actGiveBack(self, buttonGiveBack):
+        giveBackDialog = builder.get_object('giveBackDeviceDialog')
+        give_id_entry = builder.get_object('giveBackDevEntryId')
+        response = giveBackDialog.run()
+        if response == Gtk.ResponseType.OK:
+            give_id_text = give_id_entry.get_text()
+            connection = sqlite3.connect(db)
+            cursor = connection.cursor()
+            cursor.execute("SELECT getDevId FROM Gets WHERE getId=" + give_id_text)
+            device = cursor.fetchone()
+            print(str(device[0]))
+            cursor.execute("UPDATE Devices SET devState='verfügbar' WHERE devId=" + str(device[0]))
+            cursor.execute("DELETE FROM Gets WHERE getId=" + give_id_text)
+            connection.commit()
+            connection.close()
+            
+        elif response == Gtk.ResponseType.CANCEL:
+            print("CANCEL")
+        giveBackDialog.hide()
+        self.updateDev()
+        self.updateGets()
+            
+    def actGetDev(self, buttonGetDevice):
+        getDialog = builder.get_object('getDeviceDialog')
+        response = getDialog.run()
+        if response == Gtk.ResponseType.OK:
+            get_id = builder.get_object('getDevEntryId')
+            get_user_id = builder.get_object('getDevEntryUserId')
+            get_dev_id = builder.get_object('getDevEntryDevId')
+            get_id_text = get_id.get_text()
+            get_user_id_text = get_user_id.get_text()
+            get_dev_id_text = get_dev_id.get_text()
+            
+            print("Gerät wird ausgeliehen...")
+            
+            connection = sqlite3.connect(db)
+            cursor= connection.cursor()
+            cursor.execute("SELECT userName, userSurename,userClass FROM Users WHERE userId=" + get_user_id_text)
+            NSC = cursor.fetchone()
+            print(NSC)
+            
+            sql_text=""
+            sql_text += "INSERT INTO Gets VALUES ("
+            sql_text +=get_id_text +","
+            sql_text +=" '" + NSC[0] + " " + NSC[1] + "," + NSC[2] +"',"
+            sql_text +=" '"+get_user_id_text+"',"
+            sql_text +=" '"+get_dev_id_text+"',"
+            sql_text +=" '"+today_date+"')"
+            
+            print("sql_text ", sql_text)
+            cursor.execute(sql_text)
+
+            cursor.execute("UPDATE Devices SET devState='nicht verfügbar' WHERE devId=" + get_dev_id_text)
+            
+            connection.commit()
+            connection.close()   
+            
+            
+            
+        elif response == Gtk.ResponseType.CANCEL:
+            print("CANCEL")
+        getDialog.hide()
+        self.updateDev()
+        self.updateGets()
+        
+    def actAboutTopMan(self, buttonOpenAbout):
+        aboutDialog = builder.get_object('aboutTopMan')        
+        aboutDialog.run()
+        aboutDialog.hide()
+        
+    def actAddDevice(self, addDevButton):
+        addDevDialog = builder.get_object('addDeviceDialog')
+        response = addDevDialog.run()
+        if response == Gtk.ResponseType.OK:
+            print("Gerät wird hinzugefügt ...")
+            connection = sqlite3.connect(db)
+            cursor = connection.cursor()
+            id_entry = builder.get_object("addDevEntryId")
+            brand_entry = builder.get_object("addDevEntryBrand")
+            model_entry = builder.get_object("addDevEntryModel")
+            os_entry = builder.get_object("addDevEntryOS")
+            host_entry = builder.get_object("addDevEntryHostname")
+            id_text = id_entry.get_text()
+            brand_text = brand_entry.get_text()
+            model_text = model_entry.get_text()
+            os_text = os_entry.get_text()
+            host_text = host_entry.get_text()
+            state_text = "verfügbar"
+
+            sql_text=""
+            sql_text += "INSERT INTO Devices VALUES ("
+            sql_text +=id_text+","
+            sql_text +=" '"+ brand_text +"',"
+            sql_text +=" '"+ model_text +"',"
+            sql_text +=" '"+ os_text +"',"
+            sql_text +=" '"+ host_text +"',"
+            sql_text +=" '"+ state_text +"')"
+
+            print("sql_text ", sql_text)
+            cursor.execute(sql_text)
+
+            connection.commit()
+            connection.close()
+        
+        else:
+            print("CANCEL")
+        
+        addDevDialog.hide()
+        self.updateDev()
+
+    def actDelDevice(self, deleteDevButton):
+        deleteDevDialog = builder.get_object("deleteDeviceDialog")
+        response = deleteDevDialog.run()
+        if response == Gtk.ResponseType.OK:
+            del_dev_id_entry = builder.get_object("deleteDevEntryId")
+            del_dev_id_text = del_dev_id_entry.get_text()
+            connection = sqlite3.connect(db)
+            cursor = connection.cursor()
+            cursor.execute("SELECT devState FROM Devices WHERE devId=" + del_dev_id_text)
+            state = cursor.fetchone()
+            if state[0] != "verfügbar":
+                dialog = Gtk.MessageDialog(deleteDevDialog, 0,Gtk.MessageType.ERROR,Gtk.ButtonsType.CANCEL, "Gerät in benutzung")
+                dialog.format_secondary_text("Dieses Gerät wird momentan von einer Person benutzt. Das Gerät kann nicht entfernt werden.")
+                dialog.run()
+                dialog.destroy()
+            else:
+                cursor.execute("DELETE FROM Devices WHERE devId=" + del_dev_id_text)
+                connection.commit()
+                connection.close()
+            self.updateDev()
+        else:
+            print("CANCEL")
+        deleteDevDialog.hide()
+        
+    def actDelUser(self, deleteUserButton):
+        deleteUserDialog = builder.get_object("deleteUserDialog")
+        response = deleteUserDialog.run()
+        if response == Gtk.ResponseType.OK:
+            del_user_id_entry = builder.get_object("deleteUserEntry")
+            del_user_id_text = del_user_id_entry.get_text()
+            connection = sqlite3.connect(db)
+            cursor = connection.cursor()
+            cursor.execute("SELECT getUserId FROM Gets WHERE getUserId=" + del_user_id_text)
+            state = cursor.fetchone()
+                       
+            if state == None:
+                cursor.execute("DELETE FROM Users WHERE userId=" + del_user_id_text)
+                connection.commit()
+                connection.close()
+                
+            elif state[0] ==del_user_id_text:
+                dialog = Gtk.MessageDialog(deleteDevDialog, 0,Gtk.MessageType.ERROR,Gtk.ButtonsType.CANCEL, "Person beschäftigt")
+                dialog.format_secondary_text("Diese Person benutzt gerade ein Gerät. Sie kann nicht entfernt werden.")
+                dialog.run()
+                dialog.destroy()
+            self.updateUser()
+        else:
+            print("CANCEL")
+        deleteUserDialog.hide()
+        
+    def actAddUser(self, addUserButton):
+        addUserDialog = builder.get_object('addUserDialog')
+        response = addUserDialog.run()
+        if response == Gtk.ResponseType.OK:
+            print("Person wird hinzugefügt ...")
+            connection = sqlite3.connect(db)
+            cursor = connection.cursor()
+            id_entry = builder.get_object("addUserEntryId")
+            name_entry = builder.get_object("addUserEntryName")
+            surename_entry = builder.get_object("addUserEntrySurename")
+            class_entry = builder.get_object("addUserEntryClass")
+            id_text = id_entry.get_text()
+            name_text = name_entry.get_text()
+            surename_text = surename_entry.get_text()
+            class_text = class_entry.get_text()
+            
+            sql_text=""
+            sql_text += "INSERT INTO Users VALUES ("
+            sql_text +=id_text+","
+            sql_text +=" '"+ name_text +"',"
+            sql_text +=" '"+ surename_text +"',"
+            sql_text +=" '"+ class_text +"')"
+            
+            print("sql_text ", sql_text)
+            cursor.execute(sql_text)
+
+            connection.commit()
+            connection.close()
+        
+        else:
+            print("CANCEL")
+        
+        addUserDialog.hide()
+        self.updateUser()
+        
+    def devBack(self, deviceButtonBack):
+        devicePageEntry = builder.get_object("devicePageEntry")
+        global s_zahl_0
+        s_zahl_0=int(devicePageEntry.get_text())
+        if (s_zahl_0>2):
+            s_zahl_0=s_zahl_0-1
+            print('Seite: ',s_zahl_0)
+
+        else:
+            s_zahl_0=1
+        
+        
+        devicePageEntry.set_text(str(s_zahl_0))
+        self.updateDev()
+        
+    def devForward(self, deviceButtonForward):
+        devicePageEntry = builder.get_object("devicePageEntry")
+        print("vor")
+        global s_zahl_0
+        s_zahl_0=int(devicePageEntry.get_text())
+    
+        s_zahl_0=s_zahl_0+1
+
+
+        devicePageEntry.set_text(str(s_zahl_0))
+        self.updateDev()
+        
+    def userBack(self, userButtonBack):
+        userPageEntry = builder.get_object("userPageEntry")
+        global s_zahl_1
+        s_zahl_0=int(userPageEntry.get_text())
+        if (s_zahl_1>2):
+            s_zahl_1=s_zahl_1-1
+            print('Seite: ',s_zahl_1)
+
+        else:
+            s_zahl_1=1
+        
+        
+        userPageEntry.set_text(str(s_zahl_1))
+        self.updateUser()
+        
+    def userForward(self, userButtonForward):
+        userPageEntry = builder.get_object("userPageEntry")
+        print("vor")
+        global s_zahl_1
+        s_zahl_1=int(userPageEntry.get_text())
+    
+        s_zahl_1=s_zahl_1+1
+
+
+        userPageEntry.set_text(str(s_zahl_1))
+        self.updateUser()
+        
+    def getsBack(self, getsButtonBack):
+        getsPageEntry = builder.get_object("getsPageEntry")
+        global s_zahl_2
+        s_zahl_2=int(getsPageEntry.get_text())
+        if (s_zahl_2>2):
+            s_zahl_2=s_zahl_2-1
+            print('Seite: ',s_zahl_2)
+
+        else:
+            s_zahl_2=1
+        
+        
+        getsPageEntry.set_text(str(s_zahl_2))
+        self.updateGets()
+        
+    def getsForward(self, getsButtonForward):
+        getsPageEntry = builder.get_object("getsPageEntry")
+        print("vor")
+        global s_zahl_2
+        s_zahl_2=int(getsPageEntry.get_text())
+    
+        s_zahl_2=s_zahl_2+1
+
+
+        getsPageEntry.set_text(str(s_zahl_2))
+        self.updateGets()
+        
+    def actUpdate(self, buttonUpdate):
+        self.updateDev()
+        self.updateUser()
+        self.updateGets()
+        
+    def updateDev(self):
+        #Devices
+        E_0_0 = builder.get_object("Id_0")
+        E_1_0 = builder.get_object("Id_1")
+        E_2_0 = builder.get_object("Id_2")
+        E_3_0 = builder.get_object("Id_3")
+        E_4_0 = builder.get_object("Id_4")
+        E_5_0 = builder.get_object("Id_5")
+        E_6_0 = builder.get_object("Id_6")
+        E_7_0 = builder.get_object("Id_7")
+        E_8_0 = builder.get_object("Id_8")
+        E_9_0 = builder.get_object("Id_9")
+        
+        E_0_1 = builder.get_object("Brand_0")
+        E_1_1 = builder.get_object("Brand_1")
+        E_2_1 = builder.get_object("Brand_2")
+        E_3_1 = builder.get_object("Brand_3")
+        E_4_1 = builder.get_object("Brand_4")
+        E_5_1 = builder.get_object("Brand_5")
+        E_6_1 = builder.get_object("Brand_6")
+        E_7_1 = builder.get_object("Brand_7")
+        E_8_1 = builder.get_object("Brand_8")
+        E_9_1 = builder.get_object("Brand_9")
+        
+        E_0_2 = builder.get_object("Model_0")
+        E_1_2 = builder.get_object("Model_1")
+        E_2_2 = builder.get_object("Model_2")
+        E_3_2 = builder.get_object("Model_3")
+        E_4_2 = builder.get_object("Model_4")
+        E_5_2 = builder.get_object("Model_5")
+        E_6_2 = builder.get_object("Model_6")
+        E_7_2 = builder.get_object("Model_7")
+        E_8_2 = builder.get_object("Model_8")
+        E_9_2 = builder.get_object("Model_9")
+        
+        E_0_3 = builder.get_object("OS_0")
+        E_1_3 = builder.get_object("OS_1")
+        E_2_3 = builder.get_object("OS_2")
+        E_3_3 = builder.get_object("OS_3")
+        E_4_3 = builder.get_object("OS_4")
+        E_5_3 = builder.get_object("OS_5")
+        E_6_3 = builder.get_object("OS_6")
+        E_7_3 = builder.get_object("OS_7")
+        E_8_3 = builder.get_object("OS_8")
+        E_9_3 = builder.get_object("OS_9")
+        
+        E_0_4 = builder.get_object("Hostname_0")
+        E_1_4 = builder.get_object("Hostname_1")
+        E_2_4 = builder.get_object("Hostname_2")
+        E_3_4 = builder.get_object("Hostname_3")
+        E_4_4 = builder.get_object("Hostname_4")
+        E_5_4 = builder.get_object("Hostname_5")
+        E_6_4 = builder.get_object("Hostname_6")
+        E_7_4 = builder.get_object("Hostname_7")
+        E_8_4 = builder.get_object("Hostname_8")
+        E_9_4 = builder.get_object("Hostname_9")
+        
+        E_0_5 = builder.get_object("Status_0")
+        E_1_5 = builder.get_object("Status_1")
+        E_2_5 = builder.get_object("Status_2")
+        E_3_5 = builder.get_object("Status_3")
+        E_4_5 = builder.get_object("Status_4")
+        E_5_5 = builder.get_object("Status_5")
+        E_6_5 = builder.get_object("Status_6")
+        E_7_5 = builder.get_object("Status_7")
+        E_8_5 = builder.get_object("Status_8")
+        E_9_5 = builder.get_object("Status_9")
+        
+        
+        global s_zahl_0
+        connection = sqlite3.connect(db)
+        cursor= connection.cursor()
+        sql = "SELECT * FROM Devices"
+        cursor.execute(sql)
+        
+        text=""
+        column_x=[]
+        row_x=[]
+    
+        i=0
+        for row in cursor:
+        
+
+
+            r0=str(row[0])
+            r1=str(row[1])
+            r2=str(row[2])
+            r3=str(row[3])
+            r4=str(row[4])
+            r5=str(row[5])
+        
+        
+            column_x = [(r0, r1, r2, r3, r4, r5)]
+            row_x.extend(column_x)
+        
+
+    
+        connection.commit()
+        connection.close()
+        print("len(column_x)", len(column_x))
+        print("len(row_x)", len(row_x))
+        x=len(row_x)
+
+        #Reihe 0
+        i=0
+        E_0_0.set_text("")    
+        k=0+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_0.set_text(x)
+        except:
+            E_0_0.set_text("")
+
+
+        i=1
+        E_0_1.set_text("")    
+        k=0+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_0_1.set_text(x)
+        except:
+            E_0_1.set_text("")
+        
+
+        i=2
+        E_0_2.set_text("")    
+        k=0+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_2.set_text(x)
+        except:
+            E_0_2.set_text("")
+        
+
+        i=3
+        E_0_3.set_text("")    
+        k=0+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_3.set_text(x)
+        except:
+            E_0_3.set_text("")
+
+
+        i=4
+        E_0_4.set_text("")    
+        k=0+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_4.set_text(x)
+        except:
+            E_0_4.set_text("")
+
+
+        i=5
+        E_0_5.set_text("")    
+        k=0+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_5.set_text(x)
+        except:
+            E_0_5.set_text("")    
+        
+
+    
+    
+
+        #Reihe1
+        i=0
+        E_1_0.set_text("")    
+        k=1+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_0.set_text(x)
+        except:
+            E_1_0.set_text("")
+
+
+        i=1
+        E_1_1.set_text("")    
+        k=1+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_1_1.set_text(x)
+        except:
+            E_1_1.set_text("")
+        
+
+        i=2
+        E_1_2.set_text("")    
+        k=1+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_2.set_text(x)
+        except:
+            E_1_2.set_text("")
+        
+
+        i=3
+        E_1_3.set_text("")    
+        k=1+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_3.set_text(x)
+        except:
+            E_1_3.set_text("")
+
+
+        i=4
+        E_1_4.set_text("")    
+        k=1+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_4.set_text(x)
+        except:
+            E_1_4.set_text("")
+        
+
+        i=5
+        E_1_5.set_text("")    
+        k=1+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_5.set_text(x)
+        except:
+            E_1_5.set_text("")
+
+        #Reihe2
+        i=0
+        E_2_0.set_text("")    
+        k=2+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_0.set_text(x)
+        except:
+            E_2_0.set_text("")
+
+
+        i=1
+        E_2_1.set_text("")    
+        k=2+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_2_1.set_text(x)
+        except:
+            E_2_1.set_text("")
+        
+
+        i=2
+        E_2_2.set_text("")    
+        k=2+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_2.set_text(x)
+        except:
+            E_2_2.set_text("")
+        
+
+        i=3
+        E_2_3.set_text("")    
+        k=2+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_3.set_text(x)
+        except:
+            E_2_3.set_text("")
+
+
+        i=4
+        E_2_4.set_text("")    
+        k=2+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_4.set_text(x)
+        except:
+            E_2_4.set_text("")
+        
+
+        i=5
+        E_2_5.set_text("")    
+        k=2+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_5.set_text(x)
+        except:
+            E_2_5.set_text("")
+
+
+        #Reihe3
+        i=0
+        E_3_0.set_text("")    
+        k=3+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_0.set_text(x)
+        except:
+            E_3_0.set_text("")
+
+
+        i=1
+        E_3_1.set_text("")    
+        k=3+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_3_1.set_text(x)
+        except:
+            E_3_1.set_text("")
+        
+
+        i=2
+        E_3_2.set_text("")    
+        k=3+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_2.set_text(x)
+        except:
+            E_3_2.set_text("")
+        
+
+        i=3
+        E_3_3.set_text("")    
+        k=3+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_3.set_text(x)
+        except:
+            E_3_3.set_text("")
+
+
+
+        i=4
+        E_3_4.set_text("")    
+        k=3+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_4.set_text(x)
+        except:
+            E_3_4.set_text("")
+
+
+        i=5
+        E_3_5.set_text("")    
+        k=3+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_5.set_text(x)
+        except:
+            E_3_5.set_text("")
+
+    
+
+        #Reihe4
+        i=0
+        E_4_0.set_text("")    
+        k=4+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_0.set_text(x)
+        except:
+            E_4_0.set_text("")
+
+
+        i=1
+        E_4_1.set_text("")    
+        k=4+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_4_1.set_text(x)
+        except:
+            E_4_1.set_text("")
+        
+
+        i=2
+        E_4_2.set_text("")    
+        k=4+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_2.set_text(x)
+        except:
+            E_4_2.set_text("")
+        
+
+        i=3
+        E_4_3.set_text("")    
+        k=4+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_3.set_text(x)
+        except:
+            E_4_3.set_text("")
+
+
+        i=4
+        E_4_4.set_text("")    
+        k=4+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_4.set_text(x)
+        except:
+            E_4_4.set_text("")
+        
+
+        i=5
+        E_4_5.set_text("")    
+        k=4+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_5.set_text(x)
+        except:
+            E_4_5.set_text("")
+    
+        #Reihe5
+        i=0
+        E_5_0.set_text("")    
+        k=5+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_0.set_text(x)
+        except:
+            E_5_0.set_text("")
+
+
+        i=1
+        E_5_1.set_text("")   
+        k=5+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_5_1.set_text(x)
+        except:
+            E_5_1.set_text("")
+        
+
+        i=2
+        E_5_2.set_text("")    
+        k=5+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_2.set_text(x)
+        except:
+            E_5_2.set_text("")
+        
+
+        i=3
+        E_5_3.set_text("")   
+        k=5+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_3.set_text(x)
+        except:
+            E_5_3.set_text("")
+
+
+        i=4
+        E_5_4.set_text("")   
+        k=5+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_4.set_text(x)
+        except:
+            E_5_4.set_text("")
+        
+
+        i=5
+        E_5_5.set_text("")   
+        k=5+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_5.set_text(x)
+        except:
+            E_5_5.set_text("")
+   
+
+
+        #Reihe6
+        i=0
+        E_6_0.set_text("")  
+        k=6+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_0.set_text(x)
+        except:
+            E_6_0.set_text("")
+
+
+        
+
+
+        i=1
+        E_6_1.set_text("") 
+        k=6+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_6_1.set_text(x)
+        except:
+            E_6_1.set_text("")
+        
+
+        i=2
+        E_6_2.set_text("")    
+        k=6+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_2.set_text(x)
+        except:
+            E_6_2.set_text("")
+        
+
+        i=3
+        E_6_3.set_text("")    
+        k=6+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_3.set_text(x)
+        except:
+            E_6_3.set_text("")
+
+
+        i=4
+        E_6_4.set_text("")    
+        k=6+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_4.set_text(x)
+        except:
+            E_6_4.set_text("")
+        
+
+        i=5
+        E_6_5.set_text("")    
+        k=6+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_5.set_text(x)
+        except:
+            E_6_5.set_text("")
+   
+        #Reihe7
+        i=0
+        E_7_0.set_text("")   
+        k=7+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_0.set_text(x)
+        except:
+            E_7_0.set_text("")
+
+
+        i=1
+        E_7_1.set_text("")    
+        k=7+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_7_1.set_text(x)
+        except:
+            E_7_1.set_text("")
+        
+
+        i=2
+        E_7_2.set_text("")    
+        k=7+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_2.set_text(x)
+        except:
+            E_7_2.set_text("")
+        
+
+        i=3
+        E_7_3.set_text("")    
+        k=7+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_3.set_text(x)
+        except:
+            E_7_3.set_text("")
+
+
+        i=4
+        E_7_4.set_text("")    
+        k=7+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_4.set_text(x)
+        except:
+            E_7_4.set_text("")
+        
+
+        i=5
+        E_7_5.set_text("")    
+        k=7+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_5.set_text(x)
+        except:
+            E_7_5.set_text("")
+
+        #Reihe8
+        i=0
+        E_8_0.set_text("")    
+        k=8+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_0.set_text(x)
+        except:
+            E_8_0.set_text("")
+
+
+        i=1
+        E_8_1.set_text("")    
+        k=8+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_8_1.set_text(x)
+        except:
+            E_8_1.set_text("")
+        
+
+        i=2
+        E_8_2.set_text("")    
+        k=8+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_2.set_text(x)
+        except:
+            E_8_2.set_text("")
+        
+
+        i=3
+        E_8_3.set_text("")    
+        k=8+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_3.set_text(x)
+        except:
+            E_8_3.set_text("")
+
+
+        i=4
+        E_8_4.set_text("")    
+        k=8+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_4.set_text(x)
+        except:
+            E_8_4.set_text("")
+        
+        i=5
+        E_8_5.set_text("")    
+        k=8+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_5.set_text(x)
+        except:
+            E_8_5.set_text("")
+            
+
+        #Reihe9
+        i=0
+        E_9_0.set_text("")    
+        k=9+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_0.set_text(x)
+        except:
+            E_9_0.set_text("")
+
+
+        i=1
+        E_9_1.set_text("")   
+        k=9+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_9_1.set_text(x)
+        except:
+            E_9_1.set_text("")
+        
+
+        i=2
+        E_9_2.set_text("")   
+        k=9+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_2.set_text(x)
+        except:
+            E_9_2.set_text("")
+        
+
+        i=3
+        E_9_3.set_text("")    
+        k=9+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_3.set_text(x)
+        except:
+            E_9_3.set_text("")
+
+
+        i=4
+        E_9_4.set_text("")    
+        k=9+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_4.set_text(x)
+        except:
+            E_9_4.set_text("")
+
+
+
+        i=5
+        E_9_5.set_text("")    
+        k=9+(s_zahl_0-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_5.set_text(x)
+        except:
+            E_9_5.set_text("")
+    
+    def updateUser(self):
+        #Users
+        E_0_0 = builder.get_object("User_Id_0")
+        E_1_0 = builder.get_object("User_Id_1")
+        E_2_0 = builder.get_object("User_Id_2")
+        E_3_0 = builder.get_object("User_Id_3")
+        E_4_0 = builder.get_object("User_Id_4")
+        E_5_0 = builder.get_object("User_Id_5")
+        E_6_0 = builder.get_object("User_Id_6")
+        E_7_0 = builder.get_object("User_Id_7")
+        E_8_0 = builder.get_object("User_Id_8")
+        E_9_0 = builder.get_object("User_Id_9")
+        
+        E_0_1 = builder.get_object("User_Name_0")
+        E_1_1 = builder.get_object("User_Name_1")
+        E_2_1 = builder.get_object("User_Name_2")
+        E_3_1 = builder.get_object("User_Name_3")
+        E_4_1 = builder.get_object("User_Name_4")
+        E_5_1 = builder.get_object("User_Name_5")
+        E_6_1 = builder.get_object("User_Name_6")
+        E_7_1 = builder.get_object("User_Name_7")
+        E_8_1 = builder.get_object("User_Name_8")
+        E_9_1 = builder.get_object("User_Name_9")
+        
+        E_0_2 = builder.get_object("User_Surename_0")
+        E_1_2 = builder.get_object("User_Surename_1")
+        E_2_2 = builder.get_object("User_Surename_2")
+        E_3_2 = builder.get_object("User_Surename_3")
+        E_4_2 = builder.get_object("User_Surename_4")
+        E_5_2 = builder.get_object("User_Surename_5")
+        E_6_2 = builder.get_object("User_Surename_6")
+        E_7_2 = builder.get_object("User_Surename_7")
+        E_8_2 = builder.get_object("User_Surename_8")
+        E_9_2 = builder.get_object("User_Surename_9")
+        
+        E_0_3 = builder.get_object("User_Class_0")
+        E_1_3 = builder.get_object("User_Class_1")
+        E_2_3 = builder.get_object("User_Class_2")
+        E_3_3 = builder.get_object("User_Class_3")
+        E_4_3 = builder.get_object("User_Class_4")
+        E_5_3 = builder.get_object("User_Class_5")
+        E_6_3 = builder.get_object("User_Class_6")
+        E_7_3 = builder.get_object("User_Class_7")
+        E_8_3 = builder.get_object("User_Class_8")
+        E_9_3 = builder.get_object("User_Class_9")
+        
+        
+        global s_zahl_1
+        connection = sqlite3.connect(db)
+        cursor= connection.cursor()
+        sql = "SELECT * FROM Users"
+        cursor.execute(sql)
+        
+        text=""
+        column_x=[]
+        row_x=[]
+    
+        i=0
+        for row in cursor:
+        
+
+
+            r0=str(row[0])
+            r1=str(row[1])
+            r2=str(row[2])
+            r3=str(row[3])
+                   
+        
+            column_x = [(r0, r1, r2, r3)]
+            row_x.extend(column_x)
+        
+
+    
+        connection.commit()
+        connection.close()
+        print("len(column_x)", len(column_x))
+        print("len(row_x)", len(row_x))
+        x=len(row_x)
+
+        #Reihe 0
+        i=0
+        E_0_0.set_text("")    
+        k=0+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_0.set_text(x)
+        except:
+            E_0_0.set_text("")
+
+
+        i=1
+        E_0_1.set_text("")    
+        k=0+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_0_1.set_text(x)
+        except:
+            E_0_1.set_text("")
+        
+
+        i=2
+        E_0_2.set_text("")    
+        k=0+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_2.set_text(x)
+        except:
+            E_0_2.set_text("")
+        
+
+        i=3
+        E_0_3.set_text("")    
+        k=0+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_3.set_text(x)
+        except:
+            E_0_3.set_text("")
+
+        #Reihe1
+        i=0
+        E_1_0.set_text("")    
+        k=1+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_0.set_text(x)
+        except:
+            E_1_0.set_text("")
+
+
+        i=1
+        E_1_1.set_text("")    
+        k=1+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_1_1.set_text(x)
+        except:
+            E_1_1.set_text("")
+        
+
+        i=2
+        E_1_2.set_text("")    
+        k=1+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_2.set_text(x)
+        except:
+            E_1_2.set_text("")
+        
+
+        i=3
+        E_1_3.set_text("")    
+        k=1+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_3.set_text(x)
+        except:
+            E_1_3.set_text("")
+
+        #Reihe2
+        i=0
+        E_2_0.set_text("")    
+        k=2+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_0.set_text(x)
+        except:
+            E_2_0.set_text("")
+
+
+        i=1
+        E_2_1.set_text("")    
+        k=2+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_2_1.set_text(x)
+        except:
+            E_2_1.set_text("")
+        
+
+        i=2
+        E_2_2.set_text("")    
+        k=2+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_2.set_text(x)
+        except:
+            E_2_2.set_text("")
+        
+
+        i=3
+        E_2_3.set_text("")    
+        k=2+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_3.set_text(x)
+        except:
+            E_2_3.set_text("")
+
+        #Reihe3
+        i=0
+        E_3_0.set_text("")    
+        k=3+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_0.set_text(x)
+        except:
+            E_3_0.set_text("")
+
+
+        i=1
+        E_3_1.set_text("")    
+        k=3+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_3_1.set_text(x)
+        except:
+            E_3_1.set_text("")
+        
+
+        i=2
+        E_3_2.set_text("")    
+        k=3+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_2.set_text(x)
+        except:
+            E_3_2.set_text("")
+        
+
+        i=3
+        E_3_3.set_text("")    
+        k=3+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_3.set_text(x)
+        except:
+            E_3_3.set_text("")
+   
+
+        #Reihe4
+        i=0
+        E_4_0.set_text("")    
+        k=4+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_0.set_text(x)
+        except:
+            E_4_0.set_text("")
+
+
+        i=1
+        E_4_1.set_text("")    
+        k=4+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_4_1.set_text(x)
+        except:
+            E_4_1.set_text("")
+        
+
+        i=2
+        E_4_2.set_text("")    
+        k=4+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_2.set_text(x)
+        except:
+            E_4_2.set_text("")
+        
+
+        i=3
+        E_4_3.set_text("")    
+        k=4+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_3.set_text(x)
+        except:
+            E_4_3.set_text("")
+    
+        #Reihe5
+        i=0
+        E_5_0.set_text("")    
+        k=5+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_0.set_text(x)
+        except:
+            E_5_0.set_text("")
+
+
+        i=1
+        E_5_1.set_text("")   
+        k=5+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_5_1.set_text(x)
+        except:
+            E_5_1.set_text("")
+        
+
+        i=2
+        E_5_2.set_text("")    
+        k=5+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_2.set_text(x)
+        except:
+            E_5_2.set_text("")
+        
+
+        i=3
+        E_5_3.set_text("")   
+        k=5+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_3.set_text(x)
+        except:
+            E_5_3.set_text("")
+
+        #Reihe6
+        i=0
+        E_6_0.set_text("")  
+        k=6+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_0.set_text(x)
+        except:
+            E_6_0.set_text("")
+
+
+        
+
+
+        i=1
+        E_6_1.set_text("") 
+        k=6+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_6_1.set_text(x)
+        except:
+            E_6_1.set_text("")
+        
+
+        i=2
+        E_6_2.set_text("")    
+        k=6+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_2.set_text(x)
+        except:
+            E_6_2.set_text("")
+        
+
+        i=3
+        E_6_3.set_text("")    
+        k=6+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_3.set_text(x)
+        except:
+            E_6_3.set_text("")
+
+        #Reihe7
+        i=0
+        E_7_0.set_text("")   
+        k=7+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_0.set_text(x)
+        except:
+            E_7_0.set_text("")
+
+
+        i=1
+        E_7_1.set_text("")    
+        k=7+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_7_1.set_text(x)
+        except:
+            E_7_1.set_text("")
+        
+
+        i=2
+        E_7_2.set_text("")    
+        k=7+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_2.set_text(x)
+        except:
+            E_7_2.set_text("")
+        
+
+        i=3
+        E_7_3.set_text("")    
+        k=7+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_3.set_text(x)
+        except:
+            E_7_3.set_text("")
+
+        #Reihe8
+        i=0
+        E_8_0.set_text("")    
+        k=8+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_0.set_text(x)
+        except:
+            E_8_0.set_text("")
+
+
+        i=1
+        E_8_1.set_text("")    
+        k=8+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_8_1.set_text(x)
+        except:
+            E_8_1.set_text("")
+        
+
+        i=2
+        E_8_2.set_text("")    
+        k=8+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_2.set_text(x)
+        except:
+            E_8_2.set_text("")
+        
+
+        i=3
+        E_8_3.set_text("")    
+        k=8+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_3.set_text(x)
+        except:
+            E_8_3.set_text("")
+
+        #Reihe9
+        i=0
+        E_9_0.set_text("")    
+        k=9+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_0.set_text(x)
+        except:
+            E_9_0.set_text("")
+
+
+        i=1
+        E_9_1.set_text("")   
+        k=9+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_9_1.set_text(x)
+        except:
+            E_9_1.set_text("")
+        
+
+        i=2
+        E_9_2.set_text("")   
+        k=9+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_2.set_text(x)
+        except:
+            E_9_2.set_text("")
+        
+
+        i=3
+        E_9_3.set_text("")    
+        k=9+(s_zahl_1-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_3.set_text(x)
+        except:
+            E_9_3.set_text("")
+
+    def updateGets(self):
+        #Gets
+        E_0_0 = builder.get_object("Get_Id_0")
+        E_1_0 = builder.get_object("Get_Id_1")
+        E_2_0 = builder.get_object("Get_Id_2")
+        E_3_0 = builder.get_object("Get_Id_3")
+        E_4_0 = builder.get_object("Get_Id_4")
+        E_5_0 = builder.get_object("Get_Id_5")
+        E_6_0 = builder.get_object("Get_Id_6")
+        E_7_0 = builder.get_object("Get_Id_7")
+        E_8_0 = builder.get_object("Get_Id_8")
+        E_9_0 = builder.get_object("Get_Id_9")
+        
+        E_0_1 = builder.get_object("Get_NSC_0")
+        E_1_1 = builder.get_object("Get_NSC_1")
+        E_2_1 = builder.get_object("Get_NSC_2")
+        E_3_1 = builder.get_object("Get_NSC_3")
+        E_4_1 = builder.get_object("Get_NSC_4")
+        E_5_1 = builder.get_object("Get_NSC_5")
+        E_6_1 = builder.get_object("Get_NSC_6")
+        E_7_1 = builder.get_object("Get_NSC_7")
+        E_8_1 = builder.get_object("Get_NSC_8")
+        E_9_1 = builder.get_object("Get_NSC_9")
+        
+        E_0_2 = builder.get_object("Get_UserId_0")
+        E_1_2 = builder.get_object("Get_UserId_1")
+        E_2_2 = builder.get_object("Get_UserId_2")
+        E_3_2 = builder.get_object("Get_UserId_3")
+        E_4_2 = builder.get_object("Get_UserId_4")
+        E_5_2 = builder.get_object("Get_UserId_5")
+        E_6_2 = builder.get_object("Get_UserId_6")
+        E_7_2 = builder.get_object("Get_UserId_7")
+        E_8_2 = builder.get_object("Get_UserId_8")
+        E_9_2 = builder.get_object("Get_UserId_9")
+        
+        E_0_3 = builder.get_object("Get_DevId_0")
+        E_1_3 = builder.get_object("Get_DevId_1")
+        E_2_3 = builder.get_object("Get_DevId_2")
+        E_3_3 = builder.get_object("Get_DevId_3")
+        E_4_3 = builder.get_object("Get_DevId_4")
+        E_5_3 = builder.get_object("Get_DevId_5")
+        E_6_3 = builder.get_object("Get_DevId_6")
+        E_7_3 = builder.get_object("Get_DevId_7")
+        E_8_3 = builder.get_object("Get_DevId_8")
+        E_9_3 = builder.get_object("Get_DevId_9")
+        
+        E_0_4 = builder.get_object("Get_Date_0")
+        E_1_4 = builder.get_object("Get_Date_1")
+        E_2_4 = builder.get_object("Get_Date_2")
+        E_3_4 = builder.get_object("Get_Date_3")
+        E_4_4 = builder.get_object("Get_Date_4")
+        E_5_4 = builder.get_object("Get_Date_5")
+        E_6_4 = builder.get_object("Get_Date_6")
+        E_7_4 = builder.get_object("Get_Date_7")
+        E_8_4 = builder.get_object("Get_Date_8")
+        E_9_4 = builder.get_object("Get_Date_9")
+        
+              
+        
+        global s_zahl_2
+        connection = sqlite3.connect(db)
+        cursor= connection.cursor()
+        sql = "SELECT * FROM Gets"
+        cursor.execute(sql)
+        
+        text=""
+        column_x=[]
+        row_x=[]
+    
+        i=0
+        for row in cursor:
+        
+
+
+            r0=str(row[0])
+            r1=str(row[1])
+            r2=str(row[2])
+            r3=str(row[3])
+            r4=str(row[4])
+                    
+        
+            column_x = [(r0, r1, r2, r3, r4)]
+            row_x.extend(column_x)
+        
+
+    
+        connection.commit()
+        connection.close()
+        print("len(column_x)", len(column_x))
+        print("len(row_x)", len(row_x))
+        x=len(row_x)
+
+        #Reihe 0
+        i=0
+        E_0_0.set_text("")    
+        k=0+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_0.set_text(x)
+        except:
+            E_0_0.set_text("")
+
+
+        i=1
+        E_0_1.set_text("")    
+        k=0+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_0_1.set_text(x)
+        except:
+            E_0_1.set_text("")
+        
+
+        i=2
+        E_0_2.set_text("")    
+        k=0+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_2.set_text(x)
+        except:
+            E_0_2.set_text("")
+        
+
+        i=3
+        E_0_3.set_text("")    
+        k=0+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_3.set_text(x)
+        except:
+            E_0_3.set_text("")
+
+
+        i=4
+        E_0_4.set_text("")    
+        k=0+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_0_4.set_text(x)
+        except:
+            E_0_4.set_text("")
+
+        #Reihe1
+        i=0
+        E_1_0.set_text("")    
+        k=1+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_0.set_text(x)
+        except:
+            E_1_0.set_text("")
+
+
+        i=1
+        E_1_1.set_text("")    
+        k=1+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_1_1.set_text(x)
+        except:
+            E_1_1.set_text("")
+        
+
+        i=2
+        E_1_2.set_text("")    
+        k=1+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_2.set_text(x)
+        except:
+            E_1_2.set_text("")
+        
+
+        i=3
+        E_1_3.set_text("")    
+        k=1+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_3.set_text(x)
+        except:
+            E_1_3.set_text("")
+
+
+        i=4
+        E_1_4.set_text("")    
+        k=1+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_1_4.set_text(x)
+        except:
+            E_1_4.set_text("")
+        
+        #Reihe2
+        i=0
+        E_2_0.set_text("")    
+        k=2+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_0.set_text(x)
+        except:
+            E_2_0.set_text("")
+
+
+        i=1
+        E_2_1.set_text("")    
+        k=2+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_2_1.set_text(x)
+        except:
+            E_2_1.set_text("")
+        
+
+        i=2
+        E_2_2.set_text("")    
+        k=2+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_2.set_text(x)
+        except:
+            E_2_2.set_text("")
+        
+
+        i=3
+        E_2_3.set_text("")    
+        k=2+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_3.set_text(x)
+        except:
+            E_2_3.set_text("")
+
+
+        i=4
+        E_2_4.set_text("")    
+        k=2+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_2_4.set_text(x)
+        except:
+            E_2_4.set_text("")
+        
+        #Reihe3
+        i=0
+        E_3_0.set_text("")    
+        k=3+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_0.set_text(x)
+        except:
+            E_3_0.set_text("")
+
+
+        i=1
+        E_3_1.set_text("")    
+        k=3+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_3_1.set_text(x)
+        except:
+            E_3_1.set_text("")
+        
+
+        i=2
+        E_3_2.set_text("")    
+        k=3+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_2.set_text(x)
+        except:
+            E_3_2.set_text("")
+        
+
+        i=3
+        E_3_3.set_text("")    
+        k=3+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_3.set_text(x)
+        except:
+            E_3_3.set_text("")
+
+
+
+        i=4
+        E_3_4.set_text("")    
+        k=3+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_3_4.set_text(x)
+        except:
+            E_3_4.set_text("")
+
+        #Reihe4
+        i=0
+        E_4_0.set_text("")    
+        k=4+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_0.set_text(x)
+        except:
+            E_4_0.set_text("")
+
+
+        i=1
+        E_4_1.set_text("")    
+        k=4+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_4_1.set_text(x)
+        except:
+            E_4_1.set_text("")
+        
+
+        i=2
+        E_4_2.set_text("")    
+        k=4+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_2.set_text(x)
+        except:
+            E_4_2.set_text("")
+        
+
+        i=3
+        E_4_3.set_text("")    
+        k=4+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_3.set_text(x)
+        except:
+            E_4_3.set_text("")
+
+
+        i=4
+        E_4_4.set_text("")    
+        k=4+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_4_4.set_text(x)
+        except:
+            E_4_4.set_text("")
+        
+        #Reihe5
+        i=0
+        E_5_0.set_text("")    
+        k=5+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_0.set_text(x)
+        except:
+            E_5_0.set_text("")
+
+
+        i=1
+        E_5_1.set_text("")   
+        k=5+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_5_1.set_text(x)
+        except:
+            E_5_1.set_text("")
+        
+
+        i=2
+        E_5_2.set_text("")    
+        k=5+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_2.set_text(x)
+        except:
+            E_5_2.set_text("")
+        
+
+        i=3
+        E_5_3.set_text("")   
+        k=5+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_3.set_text(x)
+        except:
+            E_5_3.set_text("")
+
+
+        i=4
+        E_5_4.set_text("")   
+        k=5+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_5_4.set_text(x)
+        except:
+            E_5_4.set_text("")
+        
+        #Reihe6
+        i=0
+        E_6_0.set_text("")  
+        k=6+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_0.set_text(x)
+        except:
+            E_6_0.set_text("")
+
+
+        
+
+
+        i=1
+        E_6_1.set_text("") 
+        k=6+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_6_1.set_text(x)
+        except:
+            E_6_1.set_text("")
+        
+
+        i=2
+        E_6_2.set_text("")    
+        k=6+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_2.set_text(x)
+        except:
+            E_6_2.set_text("")
+        
+
+        i=3
+        E_6_3.set_text("")    
+        k=6+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_3.set_text(x)
+        except:
+            E_6_3.set_text("")
+
+
+        i=4
+        E_6_4.set_text("")    
+        k=6+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_6_4.set_text(x)
+        except:
+            E_6_4.set_text("")
+        
+        #Reihe7
+        i=0
+        E_7_0.set_text("")   
+        k=7+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_0.set_text(x)
+        except:
+            E_7_0.set_text("")
+
+
+        i=1
+        E_7_1.set_text("")    
+        k=7+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_7_1.set_text(x)
+        except:
+            E_7_1.set_text("")
+        
+
+        i=2
+        E_7_2.set_text("")    
+        k=7+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_2.set_text(x)
+        except:
+            E_7_2.set_text("")
+        
+
+        i=3
+        E_7_3.set_text("")    
+        k=7+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_3.set_text(x)
+        except:
+            E_7_3.set_text("")
+
+
+        i=4
+        E_7_4.set_text("")    
+        k=7+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_7_4.set_text(x)
+        except:
+            E_7_4.set_text("")
+        
+        #Reihe8
+        i=0
+        E_8_0.set_text("")    
+        k=8+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_0.set_text(x)
+        except:
+            E_8_0.set_text("")
+
+
+        i=1
+        E_8_1.set_text("")    
+        k=8+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_8_1.set_text(x)
+        except:
+            E_8_1.set_text("")
+        
+
+        i=2
+        E_8_2.set_text("")    
+        k=8+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_2.set_text(x)
+        except:
+            E_8_2.set_text("")
+        
+
+        i=3
+        E_8_3.set_text("")    
+        k=8+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_3.set_text(x)
+        except:
+            E_8_3.set_text("")
+
+
+        i=4
+        E_8_4.set_text("")    
+        k=8+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_8_4.set_text(x)
+        except:
+            E_8_4.set_text("")
+        
+        #Reihe9
+        i=0
+        E_9_0.set_text("")    
+        k=9+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_0.set_text(x)
+        except:
+            E_9_0.set_text("")
+
+
+        i=1
+        E_9_1.set_text("")   
+        k=9+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            print("x ",x)
+            E_9_1.set_text(x)
+        except:
+            E_9_1.set_text("")
+        
+
+        i=2
+        E_9_2.set_text("")   
+        k=9+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_2.set_text(x)
+        except:
+            E_9_2.set_text("")
+        
+
+        i=3
+        E_9_3.set_text("")    
+        k=9+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_3.set_text(x)
+        except:
+            E_9_3.set_text("")
+
+
+        i=4
+        E_9_4.set_text("")    
+        k=9+(s_zahl_2-1)*10
+        x=""
+        try:
+            x=str(row_x[k][i])
+            E_9_4.set_text(x)
+        except:
+            E_9_4.set_text("")
+
+def main():
+    builder = Gtk.Builder()
+    builder.add_from_file(UI_FILE)
+    window = builder.get_object('mainWindow')
+    Handler.updateDev(Handler)
+    Handler.updateUser(Handler)
+    Handler.updateGets(Handler)
+    builder.connect_signals(Handler())
+    window.show_all()
+    Gtk.main()
+        
+if __name__ == "__main__":
+    sys.exit(main())
+
