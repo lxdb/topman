@@ -48,16 +48,31 @@
       </object>
     </child>
   </object>
+  <object class="GtkEntryBuffer" id="entrybuffer1"/>
+  <object class="GtkEntryBuffer" id="entrybuffer10"/>
+  <object class="GtkEntryBuffer" id="entrybuffer2"/>
+  <object class="GtkEntryBuffer" id="entrybuffer3"/>
+  <object class="GtkEntryBuffer" id="entrybuffer4"/>
+  <object class="GtkEntryBuffer" id="entrybuffer5"/>
+  <object class="GtkEntryBuffer" id="entrybuffer6"/>
+  <object class="GtkEntryBuffer" id="entrybuffer7"/>
+  <object class="GtkEntryBuffer" id="entrybuffer8"/>
+  <object class="GtkEntryBuffer" id="entrybuffer9"/>
   <object class="GtkFileFilter" id="filefilter1">
     <mime-types>
       <mime-type>text/plain</mime-type>
     </mime-types>
   </object>
-  <object class="GtkPopover" id="popover2">
+  <object class="GtkImage" id="imageAbout">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-info</property>
+  </object>
+  <object class="GtkPopover" id="popover3">
     <property name="can_focus">False</property>
     <property name="position">bottom</property>
     <child>
-      <object class="GtkBox" id="popover2Layout">
+      <object class="GtkBox" id="popover3Layout">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="margin_left">10</property>
@@ -65,27 +80,16 @@
         <property name="margin_top">10</property>
         <property name="margin_bottom">10</property>
         <property name="orientation">vertical</property>
+        <property name="spacing">5</property>
         <child>
-          <object class="GtkLabel" id="addDevLabelImport">
+          <object class="GtkButton" id="buttonOpenAbout">
+            <property name="label" translatable="yes">Über TopMan</property>
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Aus Datei importieren</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkFileChooserButton" id="importDevConfig">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Gerätekonfiguration aus Datei importieren</property>
-            <property name="create_folders">False</property>
-            <property name="filter">filefilter1</property>
-            <property name="local_only">False</property>
-            <property name="title" translatable="yes">Gerätekonfiguration aus Datei öffnen</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="image">imageAbout</property>
+            <property name="always_show_image">True</property>
+            <signal name="pressed" handler="actAboutTopMan" swapped="no"/>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -95,11 +99,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="imageAbout">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-info</property>
   </object>
   <object class="GtkImage" id="imageDevApply">
     <property name="visible">True</property>
@@ -136,25 +135,6 @@
             <property name="icon_name">computer</property>
             <property name="icon_size">2</property>
           </object>
-        </child>
-        <child>
-          <object class="GtkMenuButton" id="addDevHeaderMenu">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="popover">popover2</property>
-            <child>
-              <object class="GtkLabel" id="addDevLabelImportMenu">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Gerätekonfiguration aus Datei importieren</property>
-                <property name="label" translatable="yes">Import</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="position">1</property>
-          </packing>
         </child>
       </object>
     </child>
@@ -852,58 +832,6 @@
       <action-widget response="-5">deleteUserCommitButton</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkImage" id="imageHelp">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-help</property>
-  </object>
-  <object class="GtkPopover" id="popover3">
-    <property name="can_focus">False</property>
-    <property name="position">bottom</property>
-    <child>
-      <object class="GtkBox" id="popover3Layout">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="margin_left">10</property>
-        <property name="margin_right">10</property>
-        <property name="margin_top">10</property>
-        <property name="margin_bottom">10</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">5</property>
-        <child>
-          <object class="GtkButton" id="buttonOpenHelp">
-            <property name="label" translatable="yes">Hilfe</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="image">imageHelp</property>
-            <property name="always_show_image">True</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="buttonOpenAbout">
-            <property name="label" translatable="yes">Über TopMan</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="image">imageAbout</property>
-            <property name="always_show_image">True</property>
-            <signal name="pressed" handler="actAboutTopMan" swapped="no"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkImage" id="imageUserApply">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -1113,6 +1041,9 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="icon_name">forward</property>
+  </object>
+  <object class="GtkEntryBuffer" id="pageDevText">
+    <property name="text" translatable="yes">1</property>
   </object>
   <object class="GtkPopover" id="popover1">
     <property name="can_focus">False</property>
@@ -1409,11 +1340,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_0">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_0</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1422,9 +1352,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_1">
+                        <property name="name">Id_1</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="input_purpose">number</property>
+                        <property name="editable">False</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1433,11 +1364,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_2">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_2</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1446,11 +1376,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_3">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_3</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1459,11 +1388,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_4">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_4</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1476,7 +1404,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1488,6 +1415,7 @@
                         <property name="name">Id_</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="buffer">entrybuffer7</property>
                         <property name="editable">False</property>
                         <property name="input_purpose">number</property>
                       </object>
@@ -1502,7 +1430,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1515,7 +1442,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1528,7 +1454,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -2131,7 +2056,6 @@
                           <object class="GtkEntry" id="devicePageEntry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="editable">False</property>
                             <property name="text" translatable="yes">1</property>
                           </object>
                           <packing>
@@ -2277,7 +2201,6 @@
                         <property name="name">Id_</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="editable">False</property>
                         <property name="input_purpose">number</property>
                       </object>
                       <packing>
@@ -2928,7 +2851,7 @@
                         <property name="name">Id_</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="editable">False</property>
+                        <property name="activates_default">True</property>
                         <property name="input_purpose">number</property>
                       </object>
                       <packing>

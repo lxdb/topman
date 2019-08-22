@@ -1,3 +1,4 @@
 # List of source files containing translatable strings.
 
-src/main.py
+src/topman.ui
+src/topman.desktop.in

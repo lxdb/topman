@@ -24,7 +24,7 @@ AM_GLIB_GNU_GETTEXT
 
 
 
-PKG_CHECK_MODULES(TOPMAN, [gtk+-3.0 python3    ])
+PKG_CHECK_MODULES(TOPMAN, [python3])
 
 
 

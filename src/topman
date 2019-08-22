@@ -257,7 +257,7 @@ class Handler:
         
         devicePageEntry.set_text(str(s_zahl_0))
         self.updateDev()
-        
+        devicePageEntry.show()        
     def devForward(self, deviceButtonForward):
         devicePageEntry = builder.get_object("devicePageEntry")
         print("vor")
@@ -268,6 +268,7 @@ class Handler:
 
 
         devicePageEntry.set_text(str(s_zahl_0))
+     
         self.updateDev()
         
     def userBack(self, userButtonBack):
@@ -440,6 +441,7 @@ class Handler:
         try:
             x=str(row_x[k][i])
             E_0_0.set_text(x)
+            print(E_0_0.get_text())
         except:
             E_0_0.set_text("")
 
@@ -1115,6 +1117,8 @@ class Handler:
             E_9_5.set_text(x)
         except:
             E_9_5.set_text("")
+
+        E_0_0.show_all()
     
     def updateUser(self):
         #Users
@@ -2305,7 +2309,17 @@ class Handler:
         except:
             E_9_4.set_text("")
 
+
+
 def main():
+    if os.path.exists("/usr/local/share/topman/database.db") == False:
+        connection = sqlite3.connect(db)
+        cursor = connection.cursor()
+        cursor.execute('''CREATE TABLE Devices(devId INTEGER PRIMARY KEY,devBrand TEXT,devModel TEXT,devOS,devHost,devState INTEGER)''')
+        cursor.execute('''CREATE TABLE Users(userId INTEGER PRIMARY KEY,userName TEXT,userSurename TEXT,userClass TEXT)''')
+        cursor.execute('''CREATE TABLE Gets(getId INTEGER PRIMARY KEY,getUser TEXT,getUserId INTEGER,getDevId INTEGER,getDate TEXT)''')
+        connection.commit()
+        connection.close()
     builder = Gtk.Builder()
     builder.add_from_file(UI_FILE)
     window = builder.get_object('mainWindow')

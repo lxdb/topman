@@ -2,6 +2,15 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkApplicationWindow">
+    <property name="can_focus">False</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
   <object class="GtkAboutDialog" id="aboutTopMan">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Über TopMan</property>
@@ -48,6 +57,16 @@
       </object>
     </child>
   </object>
+  <object class="GtkEntryBuffer" id="entrybuffer1"/>
+  <object class="GtkEntryBuffer" id="entrybuffer10"/>
+  <object class="GtkEntryBuffer" id="entrybuffer2"/>
+  <object class="GtkEntryBuffer" id="entrybuffer3"/>
+  <object class="GtkEntryBuffer" id="entrybuffer4"/>
+  <object class="GtkEntryBuffer" id="entrybuffer5"/>
+  <object class="GtkEntryBuffer" id="entrybuffer6"/>
+  <object class="GtkEntryBuffer" id="entrybuffer7"/>
+  <object class="GtkEntryBuffer" id="entrybuffer8"/>
+  <object class="GtkEntryBuffer" id="entrybuffer9"/>
   <object class="GtkFileFilter" id="filefilter1">
     <mime-types>
       <mime-type>text/plain</mime-type>
@@ -1032,6 +1051,9 @@
     <property name="can_focus">False</property>
     <property name="icon_name">forward</property>
   </object>
+  <object class="GtkEntryBuffer" id="pageDevText">
+    <property name="text" translatable="yes">1</property>
+  </object>
   <object class="GtkPopover" id="popover1">
     <property name="can_focus">False</property>
     <property name="position">bottom</property>
@@ -1108,7 +1130,6 @@
     <property name="name">mainWindow</property>
     <property name="can_focus">False</property>
     <property name="icon_name">computer</property>
-    <property name="has_resize_grip">True</property>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="headerBar">
         <property name="visible">True</property>
@@ -1327,11 +1348,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_0">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_0</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1340,9 +1360,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_1">
+                        <property name="name">Id_1</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="input_purpose">number</property>
+                        <property name="editable">False</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1351,11 +1372,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_2">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_2</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1364,11 +1384,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_3">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_3</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1377,11 +1396,10 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="Id_4">
-                        <property name="name">Id_</property>
+                        <property name="name">Id_4</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1394,7 +1412,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1406,7 +1423,9 @@
                         <property name="name">Id_</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="buffer">entrybuffer7</property>
                         <property name="editable">False</property>
+                        <property name="max_width_chars">0</property>
                         <property name="input_purpose">number</property>
                       </object>
                       <packing>
@@ -1420,7 +1439,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1433,7 +1451,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -1446,7 +1463,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="input_purpose">number</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -2049,7 +2065,6 @@
                           <object class="GtkEntry" id="devicePageEntry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="editable">False</property>
                             <property name="text" translatable="yes">1</property>
                           </object>
                           <packing>
@@ -2195,7 +2210,6 @@
                         <property name="name">Id_</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="editable">False</property>
                         <property name="input_purpose">number</property>
                       </object>
                       <packing>
@@ -2846,7 +2860,7 @@
                         <property name="name">Id_</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="editable">False</property>
+                        <property name="activates_default">True</property>
                         <property name="input_purpose">number</property>
                       </object>
                       <packing>
