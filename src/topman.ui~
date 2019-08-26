@@ -1121,7 +1121,6 @@
     <property name="name">mainWindow</property>
     <property name="can_focus">False</property>
     <property name="icon_name">computer</property>
-    <property name="has_resize_grip">True</property>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="headerBar">
         <property name="visible">True</property>
@@ -1417,6 +1416,7 @@
                         <property name="can_focus">True</property>
                         <property name="buffer">entrybuffer7</property>
                         <property name="editable">False</property>
+                        <property name="max_width_chars">0</property>
                         <property name="input_purpose">number</property>
                       </object>
                       <packing>

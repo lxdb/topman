@@ -32,25 +32,31 @@ today_date = today.strftime("%d/%m/%Y")
 
 db = "/usr/local/share/topman/database.db"
 
-s_zahl_0 = 1
-s_zahl_1 = 1
-s_zahl_2 = 1
+s_zahl_0= 1
+s_zahl_1= 1
+s_zahl_2= 1
 
 #Comment the first line and uncomment the second before installing
 #or making the tarball (alternatively, use project variables)
 #UI_FILE = "src/topman.ui"
 UI_FILE = "/usr/local/share/topman/ui/topman.ui"
-builder = Gtk.Builder()
-builder.add_from_file(UI_FILE)
-
-window = builder.get_object('mainWindow')
-
-
+#self.builder = Gtk.Builder()
+#self.builder.add_from_file(UI_FILE)
 
 class Handler:
+    def __init__(self):
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(UI_FILE)
+        window = self.builder.get_object('mainWindow')
+        
+        self.builder.connect_signals(self)
+    
+        window.show_all()
+    
+    
     def actGiveBack(self, buttonGiveBack):
-        giveBackDialog = builder.get_object('giveBackDeviceDialog')
-        give_id_entry = builder.get_object('giveBackDevEntryId')
+        giveBackDialog = self.builder.get_object('giveBackDeviceDialog')
+        give_id_entry = self.builder.get_object('giveBackDevEntryId')
         response = giveBackDialog.run()
         if response == Gtk.ResponseType.OK:
             give_id_text = give_id_entry.get_text()
@@ -71,12 +77,12 @@ class Handler:
         self.updateGets()
             
     def actGetDev(self, buttonGetDevice):
-        getDialog = builder.get_object('getDeviceDialog')
+        getDialog = self.builder.get_object('getDeviceDialog')
         response = getDialog.run()
         if response == Gtk.ResponseType.OK:
-            get_id = builder.get_object('getDevEntryId')
-            get_user_id = builder.get_object('getDevEntryUserId')
-            get_dev_id = builder.get_object('getDevEntryDevId')
+            get_id = self.builder.get_object('getDevEntryId')
+            get_user_id = self.builder.get_object('getDevEntryUserId')
+            get_dev_id = self.builder.get_object('getDevEntryDevId')
             get_id_text = get_id.get_text()
             get_user_id_text = get_user_id.get_text()
             get_dev_id_text = get_dev_id.get_text()
@@ -114,22 +120,22 @@ class Handler:
         self.updateGets()
         
     def actAboutTopMan(self, buttonOpenAbout):
-        aboutDialog = builder.get_object('aboutTopMan')        
+        aboutDialog = self.builder.get_object('aboutTopMan')        
         aboutDialog.run()
         aboutDialog.hide()
         
     def actAddDevice(self, addDevButton):
-        addDevDialog = builder.get_object('addDeviceDialog')
+        addDevDialog = self.builder.get_object('addDeviceDialog')
         response = addDevDialog.run()
         if response == Gtk.ResponseType.OK:
             print("Gerät wird hinzugefügt ...")
             connection = sqlite3.connect(db)
             cursor = connection.cursor()
-            id_entry = builder.get_object("addDevEntryId")
-            brand_entry = builder.get_object("addDevEntryBrand")
-            model_entry = builder.get_object("addDevEntryModel")
-            os_entry = builder.get_object("addDevEntryOS")
-            host_entry = builder.get_object("addDevEntryHostname")
+            id_entry = self.builder.get_object("addDevEntryId")
+            brand_entry = self.builder.get_object("addDevEntryBrand")
+            model_entry = self.builder.get_object("addDevEntryModel")
+            os_entry = self.builder.get_object("addDevEntryOS")
+            host_entry = self.builder.get_object("addDevEntryHostname")
             id_text = id_entry.get_text()
             brand_text = brand_entry.get_text()
             model_text = model_entry.get_text()
@@ -159,10 +165,10 @@ class Handler:
         self.updateDev()
 
     def actDelDevice(self, deleteDevButton):
-        deleteDevDialog = builder.get_object("deleteDeviceDialog")
+        deleteDevDialog = self.builder.get_object("deleteDeviceDialog")
         response = deleteDevDialog.run()
         if response == Gtk.ResponseType.OK:
-            del_dev_id_entry = builder.get_object("deleteDevEntryId")
+            del_dev_id_entry = self.builder.get_object("deleteDevEntryId")
             del_dev_id_text = del_dev_id_entry.get_text()
             connection = sqlite3.connect(db)
             cursor = connection.cursor()
@@ -183,10 +189,10 @@ class Handler:
         deleteDevDialog.hide()
         
     def actDelUser(self, deleteUserButton):
-        deleteUserDialog = builder.get_object("deleteUserDialog")
+        deleteUserDialog = self.builder.get_object("deleteUserDialog")
         response = deleteUserDialog.run()
         if response == Gtk.ResponseType.OK:
-            del_user_id_entry = builder.get_object("deleteUserEntry")
+            del_user_id_entry = self.builder.get_object("deleteUserEntry")
             del_user_id_text = del_user_id_entry.get_text()
             connection = sqlite3.connect(db)
             cursor = connection.cursor()
@@ -209,16 +215,16 @@ class Handler:
         deleteUserDialog.hide()
         
     def actAddUser(self, addUserButton):
-        addUserDialog = builder.get_object('addUserDialog')
+        addUserDialog = self.builder.get_object('addUserDialog')
         response = addUserDialog.run()
         if response == Gtk.ResponseType.OK:
             print("Person wird hinzugefügt ...")
             connection = sqlite3.connect(db)
             cursor = connection.cursor()
-            id_entry = builder.get_object("addUserEntryId")
-            name_entry = builder.get_object("addUserEntryName")
-            surename_entry = builder.get_object("addUserEntrySurename")
-            class_entry = builder.get_object("addUserEntryClass")
+            id_entry = self.builder.get_object("addUserEntryId")
+            name_entry = self.builder.get_object("addUserEntryName")
+            surename_entry = self.builder.get_object("addUserEntrySurename")
+            class_entry = self.builder.get_object("addUserEntryClass")
             id_text = id_entry.get_text()
             name_text = name_entry.get_text()
             surename_text = surename_entry.get_text()
@@ -244,7 +250,7 @@ class Handler:
         self.updateUser()
         
     def devBack(self, deviceButtonBack):
-        devicePageEntry = builder.get_object("devicePageEntry")
+        devicePageEntry = self.builder.get_object("devicePageEntry")
         global s_zahl_0
         s_zahl_0=int(devicePageEntry.get_text())
         if (s_zahl_0>2):
@@ -257,9 +263,9 @@ class Handler:
         
         devicePageEntry.set_text(str(s_zahl_0))
         self.updateDev()
-        devicePageEntry.show()        
+
     def devForward(self, deviceButtonForward):
-        devicePageEntry = builder.get_object("devicePageEntry")
+        devicePageEntry = self.builder.get_object("devicePageEntry")
         print("vor")
         global s_zahl_0
         s_zahl_0=int(devicePageEntry.get_text())
@@ -272,7 +278,7 @@ class Handler:
         self.updateDev()
         
     def userBack(self, userButtonBack):
-        userPageEntry = builder.get_object("userPageEntry")
+        userPageEntry = self.builder.get_object("userPageEntry")
         global s_zahl_1
         s_zahl_0=int(userPageEntry.get_text())
         if (s_zahl_1>2):
@@ -287,7 +293,7 @@ class Handler:
         self.updateUser()
         
     def userForward(self, userButtonForward):
-        userPageEntry = builder.get_object("userPageEntry")
+        userPageEntry = self.builder.get_object("userPageEntry")
         print("vor")
         global s_zahl_1
         s_zahl_1=int(userPageEntry.get_text())
@@ -299,7 +305,7 @@ class Handler:
         self.updateUser()
         
     def getsBack(self, getsButtonBack):
-        getsPageEntry = builder.get_object("getsPageEntry")
+        getsPageEntry = self.builder.get_object("getsPageEntry")
         global s_zahl_2
         s_zahl_2=int(getsPageEntry.get_text())
         if (s_zahl_2>2):
@@ -314,7 +320,7 @@ class Handler:
         self.updateGets()
         
     def getsForward(self, getsButtonForward):
-        getsPageEntry = builder.get_object("getsPageEntry")
+        getsPageEntry = self.builder.get_object("getsPageEntry")
         print("vor")
         global s_zahl_2
         s_zahl_2=int(getsPageEntry.get_text())
@@ -332,71 +338,71 @@ class Handler:
         
     def updateDev(self):
         #Devices
-        E_0_0 = builder.get_object("Id_0")
-        E_1_0 = builder.get_object("Id_1")
-        E_2_0 = builder.get_object("Id_2")
-        E_3_0 = builder.get_object("Id_3")
-        E_4_0 = builder.get_object("Id_4")
-        E_5_0 = builder.get_object("Id_5")
-        E_6_0 = builder.get_object("Id_6")
-        E_7_0 = builder.get_object("Id_7")
-        E_8_0 = builder.get_object("Id_8")
-        E_9_0 = builder.get_object("Id_9")
+        self.E_0_0 = self.builder.get_object("Id_0")
+        self.E_1_0 = self.builder.get_object("Id_1")
+        self.E_2_0 = self.builder.get_object("Id_2")
+        self.E_3_0 = self.builder.get_object("Id_3")
+        self.E_4_0 = self.builder.get_object("Id_4")
+        self.E_5_0 = self.builder.get_object("Id_5")
+        self.E_6_0 = self.builder.get_object("Id_6")
+        self.E_7_0 = self.builder.get_object("Id_7")
+        self.E_8_0 = self.builder.get_object("Id_8")
+        self.E_9_0 = self.builder.get_object("Id_9")
         
-        E_0_1 = builder.get_object("Brand_0")
-        E_1_1 = builder.get_object("Brand_1")
-        E_2_1 = builder.get_object("Brand_2")
-        E_3_1 = builder.get_object("Brand_3")
-        E_4_1 = builder.get_object("Brand_4")
-        E_5_1 = builder.get_object("Brand_5")
-        E_6_1 = builder.get_object("Brand_6")
-        E_7_1 = builder.get_object("Brand_7")
-        E_8_1 = builder.get_object("Brand_8")
-        E_9_1 = builder.get_object("Brand_9")
+        self.E_0_1 = self.builder.get_object("Brand_0")
+        self.E_1_1 = self.builder.get_object("Brand_1")
+        self.E_2_1 = self.builder.get_object("Brand_2")
+        self.E_3_1 = self.builder.get_object("Brand_3")
+        self.E_4_1 = self.builder.get_object("Brand_4")
+        self.E_5_1 = self.builder.get_object("Brand_5")
+        self.E_6_1 = self.builder.get_object("Brand_6")
+        self.E_7_1 = self.builder.get_object("Brand_7")
+        self.E_8_1 = self.builder.get_object("Brand_8")
+        self.E_9_1 = self.builder.get_object("Brand_9")
         
-        E_0_2 = builder.get_object("Model_0")
-        E_1_2 = builder.get_object("Model_1")
-        E_2_2 = builder.get_object("Model_2")
-        E_3_2 = builder.get_object("Model_3")
-        E_4_2 = builder.get_object("Model_4")
-        E_5_2 = builder.get_object("Model_5")
-        E_6_2 = builder.get_object("Model_6")
-        E_7_2 = builder.get_object("Model_7")
-        E_8_2 = builder.get_object("Model_8")
-        E_9_2 = builder.get_object("Model_9")
+        self.E_0_2 = self.builder.get_object("Model_0")
+        self.E_1_2 = self.builder.get_object("Model_1")
+        self.E_2_2 = self.builder.get_object("Model_2")
+        self.E_3_2 = self.builder.get_object("Model_3")
+        self.E_4_2 = self.builder.get_object("Model_4")
+        self.E_5_2 = self.builder.get_object("Model_5")
+        self.E_6_2 = self.builder.get_object("Model_6")
+        self.E_7_2 = self.builder.get_object("Model_7")
+        self.E_8_2 = self.builder.get_object("Model_8")
+        self.E_9_2 = self.builder.get_object("Model_9")
         
-        E_0_3 = builder.get_object("OS_0")
-        E_1_3 = builder.get_object("OS_1")
-        E_2_3 = builder.get_object("OS_2")
-        E_3_3 = builder.get_object("OS_3")
-        E_4_3 = builder.get_object("OS_4")
-        E_5_3 = builder.get_object("OS_5")
-        E_6_3 = builder.get_object("OS_6")
-        E_7_3 = builder.get_object("OS_7")
-        E_8_3 = builder.get_object("OS_8")
-        E_9_3 = builder.get_object("OS_9")
+        self.E_0_3 = self.builder.get_object("OS_0")
+        self.E_1_3 = self.builder.get_object("OS_1")
+        self.E_2_3 = self.builder.get_object("OS_2")
+        self.E_3_3 = self.builder.get_object("OS_3")
+        self.E_4_3 = self.builder.get_object("OS_4")
+        self.E_5_3 = self.builder.get_object("OS_5")
+        self.E_6_3 = self.builder.get_object("OS_6")
+        self.E_7_3 = self.builder.get_object("OS_7")
+        self.E_8_3 = self.builder.get_object("OS_8")
+        self.E_9_3 = self.builder.get_object("OS_9")
         
-        E_0_4 = builder.get_object("Hostname_0")
-        E_1_4 = builder.get_object("Hostname_1")
-        E_2_4 = builder.get_object("Hostname_2")
-        E_3_4 = builder.get_object("Hostname_3")
-        E_4_4 = builder.get_object("Hostname_4")
-        E_5_4 = builder.get_object("Hostname_5")
-        E_6_4 = builder.get_object("Hostname_6")
-        E_7_4 = builder.get_object("Hostname_7")
-        E_8_4 = builder.get_object("Hostname_8")
-        E_9_4 = builder.get_object("Hostname_9")
+        self.E_0_4 = self.builder.get_object("Hostname_0")
+        self.E_1_4 = self.builder.get_object("Hostname_1")
+        self.E_2_4 = self.builder.get_object("Hostname_2")
+        self.E_3_4 = self.builder.get_object("Hostname_3")
+        self.E_4_4 = self.builder.get_object("Hostname_4")
+        self.E_5_4 = self.builder.get_object("Hostname_5")
+        self.E_6_4 = self.builder.get_object("Hostname_6")
+        self.E_7_4 = self.builder.get_object("Hostname_7")
+        self.E_8_4 = self.builder.get_object("Hostname_8")
+        self.E_9_4 = self.builder.get_object("Hostname_9")
         
-        E_0_5 = builder.get_object("Status_0")
-        E_1_5 = builder.get_object("Status_1")
-        E_2_5 = builder.get_object("Status_2")
-        E_3_5 = builder.get_object("Status_3")
-        E_4_5 = builder.get_object("Status_4")
-        E_5_5 = builder.get_object("Status_5")
-        E_6_5 = builder.get_object("Status_6")
-        E_7_5 = builder.get_object("Status_7")
-        E_8_5 = builder.get_object("Status_8")
-        E_9_5 = builder.get_object("Status_9")
+        self.E_0_5 = self.builder.get_object("Status_0")
+        self.E_1_5 = self.builder.get_object("Status_1")
+        self.E_2_5 = self.builder.get_object("Status_2")
+        self.E_3_5 = self.builder.get_object("Status_3")
+        self.E_4_5 = self.builder.get_object("Status_4")
+        self.E_5_5 = self.builder.get_object("Status_5")
+        self.E_6_5 = self.builder.get_object("Status_6")
+        self.E_7_5 = self.builder.get_object("Status_7")
+        self.E_8_5 = self.builder.get_object("Status_8")
+        self.E_9_5 = self.builder.get_object("Status_9")
         
         
         global s_zahl_0
@@ -435,71 +441,71 @@ class Handler:
 
         #Reihe 0
         i=0
-        E_0_0.set_text("")    
+        self.E_0_0.set_text("")    
         k=0+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_0.set_text(x)
-            print(E_0_0.get_text())
+            self.E_0_0.set_text(x)
+            print(self.E_0_0.get_text())
         except:
-            E_0_0.set_text("")
+            self.E_0_0.set_text("")
 
 
         i=1
-        E_0_1.set_text("")    
+        self.E_0_1.set_text("")    
         k=0+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_0_1.set_text(x)
+            self.E_0_1.set_text(x)
         except:
-            E_0_1.set_text("")
+            self.E_0_1.set_text("")
         
 
         i=2
-        E_0_2.set_text("")    
+        self.E_0_2.set_text("")    
         k=0+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_2.set_text(x)
+            self.E_0_2.set_text(x)
         except:
-            E_0_2.set_text("")
+            self.E_0_2.set_text("")
         
 
         i=3
-        E_0_3.set_text("")    
+        self.E_0_3.set_text("")    
         k=0+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_3.set_text(x)
+            self.E_0_3.set_text(x)
         except:
-            E_0_3.set_text("")
+            self.E_0_3.set_text("")
 
 
         i=4
-        E_0_4.set_text("")    
+        self.E_0_4.set_text("")    
         k=0+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_4.set_text(x)
+            self.E_0_4.set_text(x)
         except:
-            E_0_4.set_text("")
+            self.E_0_4.set_text("")
 
 
         i=5
-        E_0_5.set_text("")    
+        self.E_0_5.set_text("")    
         k=0+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_5.set_text(x)
+            self.E_0_5.set_text(x)
         except:
-            E_0_5.set_text("")    
+            self.E_0_5.set_text("")    
         
 
     
@@ -507,664 +513,663 @@ class Handler:
 
         #Reihe1
         i=0
-        E_1_0.set_text("")    
+        self.E_1_0.set_text("")    
         k=1+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_0.set_text(x)
+            self.E_1_0.set_text(x)
         except:
-            E_1_0.set_text("")
+            self.E_1_0.set_text("")
 
 
         i=1
-        E_1_1.set_text("")    
+        self.E_1_1.set_text("")    
         k=1+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_1_1.set_text(x)
+            self.E_1_1.set_text(x)
         except:
-            E_1_1.set_text("")
+            self.E_1_1.set_text("")
         
 
         i=2
-        E_1_2.set_text("")    
+        self.E_1_2.set_text("")    
         k=1+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_2.set_text(x)
+            self.E_1_2.set_text(x)
         except:
-            E_1_2.set_text("")
+            self.E_1_2.set_text("")
         
 
         i=3
-        E_1_3.set_text("")    
+        self.E_1_3.set_text("")    
         k=1+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_3.set_text(x)
+            self.E_1_3.set_text(x)
         except:
-            E_1_3.set_text("")
+            self.E_1_3.set_text("")
 
 
         i=4
-        E_1_4.set_text("")    
+        self.E_1_4.set_text("")    
         k=1+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_4.set_text(x)
+            self.E_1_4.set_text(x)
         except:
-            E_1_4.set_text("")
+            self.E_1_4.set_text("")
         
 
         i=5
-        E_1_5.set_text("")    
+        self.E_1_5.set_text("")    
         k=1+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_5.set_text(x)
+            self.E_1_5.set_text(x)
         except:
-            E_1_5.set_text("")
+            self.E_1_5.set_text("")
 
         #Reihe2
         i=0
-        E_2_0.set_text("")    
+        self.E_2_0.set_text("")    
         k=2+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_0.set_text(x)
+            self.E_2_0.set_text(x)
         except:
-            E_2_0.set_text("")
+            self.E_2_0.set_text("")
 
 
         i=1
-        E_2_1.set_text("")    
+        self.E_2_1.set_text("")    
         k=2+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_2_1.set_text(x)
+            self.E_2_1.set_text(x)
         except:
-            E_2_1.set_text("")
+            self.E_2_1.set_text("")
         
 
         i=2
-        E_2_2.set_text("")    
+        self.E_2_2.set_text("")    
         k=2+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_2.set_text(x)
+            self.E_2_2.set_text(x)
         except:
-            E_2_2.set_text("")
+            self.E_2_2.set_text("")
         
 
         i=3
-        E_2_3.set_text("")    
+        self.E_2_3.set_text("")    
         k=2+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_3.set_text(x)
+            self.E_2_3.set_text(x)
         except:
-            E_2_3.set_text("")
+            self.E_2_3.set_text("")
 
 
         i=4
-        E_2_4.set_text("")    
+        self.E_2_4.set_text("")    
         k=2+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_4.set_text(x)
+            self.E_2_4.set_text(x)
         except:
-            E_2_4.set_text("")
+            self.E_2_4.set_text("")
         
 
         i=5
-        E_2_5.set_text("")    
+        self.E_2_5.set_text("")    
         k=2+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_5.set_text(x)
+            self.E_2_5.set_text(x)
         except:
-            E_2_5.set_text("")
+            self.E_2_5.set_text("")
 
 
         #Reihe3
         i=0
-        E_3_0.set_text("")    
+        self.E_3_0.set_text("")    
         k=3+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_0.set_text(x)
+            self.E_3_0.set_text(x)
         except:
-            E_3_0.set_text("")
+            self.E_3_0.set_text("")
 
 
         i=1
-        E_3_1.set_text("")    
+        self.E_3_1.set_text("")    
         k=3+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_3_1.set_text(x)
+            self.E_3_1.set_text(x)
         except:
-            E_3_1.set_text("")
+            self.E_3_1.set_text("")
         
 
         i=2
-        E_3_2.set_text("")    
+        self.E_3_2.set_text("")    
         k=3+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_2.set_text(x)
+            self.E_3_2.set_text(x)
         except:
-            E_3_2.set_text("")
+            self.E_3_2.set_text("")
         
 
         i=3
-        E_3_3.set_text("")    
+        self.E_3_3.set_text("")    
         k=3+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_3.set_text(x)
+            self.E_3_3.set_text(x)
         except:
-            E_3_3.set_text("")
+            self.E_3_3.set_text("")
 
 
 
         i=4
-        E_3_4.set_text("")    
+        self.E_3_4.set_text("")    
         k=3+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_4.set_text(x)
+            self.E_3_4.set_text(x)
         except:
-            E_3_4.set_text("")
+            self.E_3_4.set_text("")
 
 
         i=5
-        E_3_5.set_text("")    
+        self.E_3_5.set_text("")    
         k=3+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_5.set_text(x)
+            self.E_3_5.set_text(x)
         except:
-            E_3_5.set_text("")
+            self.E_3_5.set_text("")
 
     
 
         #Reihe4
         i=0
-        E_4_0.set_text("")    
+        self.E_4_0.set_text("")    
         k=4+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_0.set_text(x)
+            self.E_4_0.set_text(x)
         except:
-            E_4_0.set_text("")
+            self.E_4_0.set_text("")
 
 
         i=1
-        E_4_1.set_text("")    
+        self.E_4_1.set_text("")    
         k=4+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_4_1.set_text(x)
+            self.E_4_1.set_text(x)
         except:
-            E_4_1.set_text("")
+            self.E_4_1.set_text("")
         
 
         i=2
-        E_4_2.set_text("")    
+        self.E_4_2.set_text("")    
         k=4+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_2.set_text(x)
+            self.E_4_2.set_text(x)
         except:
-            E_4_2.set_text("")
+            self.E_4_2.set_text("")
         
 
         i=3
-        E_4_3.set_text("")    
+        self.E_4_3.set_text("")    
         k=4+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_3.set_text(x)
+            self.E_4_3.set_text(x)
         except:
-            E_4_3.set_text("")
+            self.E_4_3.set_text("")
 
 
         i=4
-        E_4_4.set_text("")    
+        self.E_4_4.set_text("")    
         k=4+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_4.set_text(x)
+            self.E_4_4.set_text(x)
         except:
-            E_4_4.set_text("")
+            self.E_4_4.set_text("")
         
 
         i=5
-        E_4_5.set_text("")    
+        self.E_4_5.set_text("")    
         k=4+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_5.set_text(x)
+            self.E_4_5.set_text(x)
         except:
-            E_4_5.set_text("")
+            self.E_4_5.set_text("")
     
         #Reihe5
         i=0
-        E_5_0.set_text("")    
+        self.E_5_0.set_text("")    
         k=5+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_0.set_text(x)
+            self.E_5_0.set_text(x)
         except:
-            E_5_0.set_text("")
+            self.E_5_0.set_text("")
 
 
         i=1
-        E_5_1.set_text("")   
+        self.E_5_1.set_text("")   
         k=5+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_5_1.set_text(x)
+            self.E_5_1.set_text(x)
         except:
-            E_5_1.set_text("")
+            self.E_5_1.set_text("")
         
 
         i=2
-        E_5_2.set_text("")    
+        self.E_5_2.set_text("")    
         k=5+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_2.set_text(x)
+            self.E_5_2.set_text(x)
         except:
-            E_5_2.set_text("")
+            self.E_5_2.set_text("")
         
 
         i=3
-        E_5_3.set_text("")   
+        self.E_5_3.set_text("")   
         k=5+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_3.set_text(x)
+            self.E_5_3.set_text(x)
         except:
-            E_5_3.set_text("")
+            self.E_5_3.set_text("")
 
 
         i=4
-        E_5_4.set_text("")   
+        self.E_5_4.set_text("")   
         k=5+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_4.set_text(x)
+            self.E_5_4.set_text(x)
         except:
-            E_5_4.set_text("")
+            self.E_5_4.set_text("")
         
 
         i=5
-        E_5_5.set_text("")   
+        self.E_5_5.set_text("")   
         k=5+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_5.set_text(x)
+            self.E_5_5.set_text(x)
         except:
-            E_5_5.set_text("")
+            self.E_5_5.set_text("")
    
 
 
         #Reihe6
         i=0
-        E_6_0.set_text("")  
+        self.E_6_0.set_text("")  
         k=6+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_0.set_text(x)
+            self.E_6_0.set_text(x)
         except:
-            E_6_0.set_text("")
+            self.E_6_0.set_text("")
 
 
         
 
 
         i=1
-        E_6_1.set_text("") 
+        self.E_6_1.set_text("") 
         k=6+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_6_1.set_text(x)
+            self.E_6_1.set_text(x)
         except:
-            E_6_1.set_text("")
+            self.E_6_1.set_text("")
         
 
         i=2
-        E_6_2.set_text("")    
+        self.E_6_2.set_text("")    
         k=6+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_2.set_text(x)
+            self.E_6_2.set_text(x)
         except:
-            E_6_2.set_text("")
+            self.E_6_2.set_text("")
         
 
         i=3
-        E_6_3.set_text("")    
+        self.E_6_3.set_text("")    
         k=6+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_3.set_text(x)
+            self.E_6_3.set_text(x)
         except:
-            E_6_3.set_text("")
+            self.E_6_3.set_text("")
 
 
         i=4
-        E_6_4.set_text("")    
+        self.E_6_4.set_text("")    
         k=6+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_4.set_text(x)
+            self.E_6_4.set_text(x)
         except:
-            E_6_4.set_text("")
+            self.E_6_4.set_text("")
         
 
         i=5
-        E_6_5.set_text("")    
+        self.E_6_5.set_text("")    
         k=6+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_5.set_text(x)
+            self.E_6_5.set_text(x)
         except:
-            E_6_5.set_text("")
+            self.E_6_5.set_text("")
    
         #Reihe7
         i=0
-        E_7_0.set_text("")   
+        self.E_7_0.set_text("")   
         k=7+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_0.set_text(x)
+            self.E_7_0.set_text(x)
         except:
-            E_7_0.set_text("")
+            self.E_7_0.set_text("")
 
 
         i=1
-        E_7_1.set_text("")    
+        self.E_7_1.set_text("")    
         k=7+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_7_1.set_text(x)
+            self.E_7_1.set_text(x)
         except:
-            E_7_1.set_text("")
+            self.E_7_1.set_text("")
         
 
         i=2
-        E_7_2.set_text("")    
+        self.E_7_2.set_text("")    
         k=7+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_2.set_text(x)
+            self.E_7_2.set_text(x)
         except:
-            E_7_2.set_text("")
+            self.E_7_2.set_text("")
         
 
         i=3
-        E_7_3.set_text("")    
+        self.E_7_3.set_text("")    
         k=7+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_3.set_text(x)
+            self.E_7_3.set_text(x)
         except:
-            E_7_3.set_text("")
+            self.E_7_3.set_text("")
 
 
         i=4
-        E_7_4.set_text("")    
+        self.E_7_4.set_text("")    
         k=7+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_4.set_text(x)
+            self.E_7_4.set_text(x)
         except:
-            E_7_4.set_text("")
+            self.E_7_4.set_text("")
         
 
         i=5
-        E_7_5.set_text("")    
+        self.E_7_5.set_text("")    
         k=7+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_5.set_text(x)
+            self.E_7_5.set_text(x)
         except:
-            E_7_5.set_text("")
+            self.E_7_5.set_text("")
 
         #Reihe8
         i=0
-        E_8_0.set_text("")    
+        self.E_8_0.set_text("")    
         k=8+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_0.set_text(x)
+            self.E_8_0.set_text(x)
         except:
-            E_8_0.set_text("")
+            self.E_8_0.set_text("")
 
 
         i=1
-        E_8_1.set_text("")    
+        self.E_8_1.set_text("")    
         k=8+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_8_1.set_text(x)
+            self.E_8_1.set_text(x)
         except:
-            E_8_1.set_text("")
+            self.E_8_1.set_text("")
         
 
         i=2
-        E_8_2.set_text("")    
+        self.E_8_2.set_text("")    
         k=8+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_2.set_text(x)
+            self.E_8_2.set_text(x)
         except:
-            E_8_2.set_text("")
+            self.E_8_2.set_text("")
         
 
         i=3
-        E_8_3.set_text("")    
+        self.E_8_3.set_text("")    
         k=8+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_3.set_text(x)
+            self.E_8_3.set_text(x)
         except:
-            E_8_3.set_text("")
+            self.E_8_3.set_text("")
 
 
         i=4
-        E_8_4.set_text("")    
+        self.E_8_4.set_text("")    
         k=8+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_4.set_text(x)
+            self.E_8_4.set_text(x)
         except:
-            E_8_4.set_text("")
+            self.E_8_4.set_text("")
         
         i=5
-        E_8_5.set_text("")    
+        self.E_8_5.set_text("")    
         k=8+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_5.set_text(x)
+            self.E_8_5.set_text(x)
         except:
-            E_8_5.set_text("")
+            self.E_8_5.set_text("")
             
 
         #Reihe9
         i=0
-        E_9_0.set_text("")    
+        self.E_9_0.set_text("")    
         k=9+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_0.set_text(x)
+            self.E_9_0.set_text(x)
         except:
-            E_9_0.set_text("")
+            self.E_9_0.set_text("")
 
 
         i=1
-        E_9_1.set_text("")   
+        self.E_9_1.set_text("")   
         k=9+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_9_1.set_text(x)
+            self.E_9_1.set_text(x)
         except:
-            E_9_1.set_text("")
+            self.E_9_1.set_text("")
         
 
         i=2
-        E_9_2.set_text("")   
+        self.E_9_2.set_text("")   
         k=9+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_2.set_text(x)
+            self.E_9_2.set_text(x)
         except:
-            E_9_2.set_text("")
+            self.E_9_2.set_text("")
         
 
         i=3
-        E_9_3.set_text("")    
+        self.E_9_3.set_text("")    
         k=9+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_3.set_text(x)
+            self.E_9_3.set_text(x)
         except:
-            E_9_3.set_text("")
+            self.E_9_3.set_text("")
 
 
         i=4
-        E_9_4.set_text("")    
+        self.E_9_4.set_text("")    
         k=9+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_4.set_text(x)
+            self.E_9_4.set_text(x)
         except:
-            E_9_4.set_text("")
+            self.E_9_4.set_text("")
 
 
 
         i=5
-        E_9_5.set_text("")    
+        self.E_9_5.set_text("")    
         k=9+(s_zahl_0-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_5.set_text(x)
+            self.E_9_5.set_text(x)
         except:
-            E_9_5.set_text("")
+            self.E_9_5.set_text("")
 
-        E_0_0.show_all()
-    
+            
     def updateUser(self):
         #Users
-        E_0_0 = builder.get_object("User_Id_0")
-        E_1_0 = builder.get_object("User_Id_1")
-        E_2_0 = builder.get_object("User_Id_2")
-        E_3_0 = builder.get_object("User_Id_3")
-        E_4_0 = builder.get_object("User_Id_4")
-        E_5_0 = builder.get_object("User_Id_5")
-        E_6_0 = builder.get_object("User_Id_6")
-        E_7_0 = builder.get_object("User_Id_7")
-        E_8_0 = builder.get_object("User_Id_8")
-        E_9_0 = builder.get_object("User_Id_9")
+        self.E_0_0 = self.builder.get_object("User_Id_0")
+        self.E_1_0 = self.builder.get_object("User_Id_1")
+        self.E_2_0 = self.builder.get_object("User_Id_2")
+        self.E_3_0 = self.builder.get_object("User_Id_3")
+        self.E_4_0 = self.builder.get_object("User_Id_4")
+        self.E_5_0 = self.builder.get_object("User_Id_5")
+        self.E_6_0 = self.builder.get_object("User_Id_6")
+        self.E_7_0 = self.builder.get_object("User_Id_7")
+        self.E_8_0 = self.builder.get_object("User_Id_8")
+        self.E_9_0 = self.builder.get_object("User_Id_9")
         
-        E_0_1 = builder.get_object("User_Name_0")
-        E_1_1 = builder.get_object("User_Name_1")
-        E_2_1 = builder.get_object("User_Name_2")
-        E_3_1 = builder.get_object("User_Name_3")
-        E_4_1 = builder.get_object("User_Name_4")
-        E_5_1 = builder.get_object("User_Name_5")
-        E_6_1 = builder.get_object("User_Name_6")
-        E_7_1 = builder.get_object("User_Name_7")
-        E_8_1 = builder.get_object("User_Name_8")
-        E_9_1 = builder.get_object("User_Name_9")
+        self.E_0_1 = self.builder.get_object("User_Name_0")
+        self.E_1_1 = self.builder.get_object("User_Name_1")
+        self.E_2_1 = self.builder.get_object("User_Name_2")
+        self.E_3_1 = self.builder.get_object("User_Name_3")
+        self.E_4_1 = self.builder.get_object("User_Name_4")
+        self.E_5_1 = self.builder.get_object("User_Name_5")
+        self.E_6_1 = self.builder.get_object("User_Name_6")
+        self.E_7_1 = self.builder.get_object("User_Name_7")
+        self.E_8_1 = self.builder.get_object("User_Name_8")
+        self.E_9_1 = self.builder.get_object("User_Name_9")
         
-        E_0_2 = builder.get_object("User_Surename_0")
-        E_1_2 = builder.get_object("User_Surename_1")
-        E_2_2 = builder.get_object("User_Surename_2")
-        E_3_2 = builder.get_object("User_Surename_3")
-        E_4_2 = builder.get_object("User_Surename_4")
-        E_5_2 = builder.get_object("User_Surename_5")
-        E_6_2 = builder.get_object("User_Surename_6")
-        E_7_2 = builder.get_object("User_Surename_7")
-        E_8_2 = builder.get_object("User_Surename_8")
-        E_9_2 = builder.get_object("User_Surename_9")
+        self.E_0_2 = self.builder.get_object("User_Surename_0")
+        self.E_1_2 = self.builder.get_object("User_Surename_1")
+        self.E_2_2 = self.builder.get_object("User_Surename_2")
+        self.E_3_2 = self.builder.get_object("User_Surename_3")
+        self.E_4_2 = self.builder.get_object("User_Surename_4")
+        self.E_5_2 = self.builder.get_object("User_Surename_5")
+        self.E_6_2 = self.builder.get_object("User_Surename_6")
+        self.E_7_2 = self.builder.get_object("User_Surename_7")
+        self.E_8_2 = self.builder.get_object("User_Surename_8")
+        self.E_9_2 = self.builder.get_object("User_Surename_9")
         
-        E_0_3 = builder.get_object("User_Class_0")
-        E_1_3 = builder.get_object("User_Class_1")
-        E_2_3 = builder.get_object("User_Class_2")
-        E_3_3 = builder.get_object("User_Class_3")
-        E_4_3 = builder.get_object("User_Class_4")
-        E_5_3 = builder.get_object("User_Class_5")
-        E_6_3 = builder.get_object("User_Class_6")
-        E_7_3 = builder.get_object("User_Class_7")
-        E_8_3 = builder.get_object("User_Class_8")
-        E_9_3 = builder.get_object("User_Class_9")
+        self.E_0_3 = self.builder.get_object("User_Class_0")
+        self.E_1_3 = self.builder.get_object("User_Class_1")
+        self.E_2_3 = self.builder.get_object("User_Class_2")
+        self.E_3_3 = self.builder.get_object("User_Class_3")
+        self.E_4_3 = self.builder.get_object("User_Class_4")
+        self.E_5_3 = self.builder.get_object("User_Class_5")
+        self.E_6_3 = self.builder.get_object("User_Class_6")
+        self.E_7_3 = self.builder.get_object("User_Class_7")
+        self.E_8_3 = self.builder.get_object("User_Class_8")
+        self.E_9_3 = self.builder.get_object("User_Class_9")
         
         
         global s_zahl_1
@@ -1201,514 +1206,514 @@ class Handler:
 
         #Reihe 0
         i=0
-        E_0_0.set_text("")    
+        self.E_0_0.set_text("")    
         k=0+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_0.set_text(x)
+            self.E_0_0.set_text(x)
         except:
-            E_0_0.set_text("")
+            self.E_0_0.set_text("")
 
 
         i=1
-        E_0_1.set_text("")    
+        self.E_0_1.set_text("")    
         k=0+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_0_1.set_text(x)
+            self.E_0_1.set_text(x)
         except:
-            E_0_1.set_text("")
+            self.E_0_1.set_text("")
         
 
         i=2
-        E_0_2.set_text("")    
+        self.E_0_2.set_text("")    
         k=0+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_2.set_text(x)
+            self.E_0_2.set_text(x)
         except:
-            E_0_2.set_text("")
+            self.E_0_2.set_text("")
         
 
         i=3
-        E_0_3.set_text("")    
+        self.E_0_3.set_text("")    
         k=0+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_3.set_text(x)
+            self.E_0_3.set_text(x)
         except:
-            E_0_3.set_text("")
+            self.E_0_3.set_text("")
 
         #Reihe1
         i=0
-        E_1_0.set_text("")    
+        self.E_1_0.set_text("")    
         k=1+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_0.set_text(x)
+            self.E_1_0.set_text(x)
         except:
-            E_1_0.set_text("")
+            self.E_1_0.set_text("")
 
 
         i=1
-        E_1_1.set_text("")    
+        self.E_1_1.set_text("")    
         k=1+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_1_1.set_text(x)
+            self.E_1_1.set_text(x)
         except:
-            E_1_1.set_text("")
+            self.E_1_1.set_text("")
         
 
         i=2
-        E_1_2.set_text("")    
+        self.E_1_2.set_text("")    
         k=1+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_2.set_text(x)
+            self.E_1_2.set_text(x)
         except:
-            E_1_2.set_text("")
+            self.E_1_2.set_text("")
         
 
         i=3
-        E_1_3.set_text("")    
+        self.E_1_3.set_text("")    
         k=1+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_3.set_text(x)
+            self.E_1_3.set_text(x)
         except:
-            E_1_3.set_text("")
+            self.E_1_3.set_text("")
 
         #Reihe2
         i=0
-        E_2_0.set_text("")    
+        self.E_2_0.set_text("")    
         k=2+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_0.set_text(x)
+            self.E_2_0.set_text(x)
         except:
-            E_2_0.set_text("")
+            self.E_2_0.set_text("")
 
 
         i=1
-        E_2_1.set_text("")    
+        self.E_2_1.set_text("")    
         k=2+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_2_1.set_text(x)
+            self.E_2_1.set_text(x)
         except:
-            E_2_1.set_text("")
+            self.E_2_1.set_text("")
         
 
         i=2
-        E_2_2.set_text("")    
+        self.E_2_2.set_text("")    
         k=2+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_2.set_text(x)
+            self.E_2_2.set_text(x)
         except:
-            E_2_2.set_text("")
+            self.E_2_2.set_text("")
         
 
         i=3
-        E_2_3.set_text("")    
+        self.E_2_3.set_text("")    
         k=2+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_3.set_text(x)
+            self.E_2_3.set_text(x)
         except:
-            E_2_3.set_text("")
+            self.E_2_3.set_text("")
 
         #Reihe3
         i=0
-        E_3_0.set_text("")    
+        self.E_3_0.set_text("")    
         k=3+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_0.set_text(x)
+            self.E_3_0.set_text(x)
         except:
-            E_3_0.set_text("")
+            self.E_3_0.set_text("")
 
 
         i=1
-        E_3_1.set_text("")    
+        self.E_3_1.set_text("")    
         k=3+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_3_1.set_text(x)
+            self.E_3_1.set_text(x)
         except:
-            E_3_1.set_text("")
+            self.E_3_1.set_text("")
         
 
         i=2
-        E_3_2.set_text("")    
+        self.E_3_2.set_text("")    
         k=3+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_2.set_text(x)
+            self.E_3_2.set_text(x)
         except:
-            E_3_2.set_text("")
+            self.E_3_2.set_text("")
         
 
         i=3
-        E_3_3.set_text("")    
+        self.E_3_3.set_text("")    
         k=3+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_3.set_text(x)
+            self.E_3_3.set_text(x)
         except:
-            E_3_3.set_text("")
+            self.E_3_3.set_text("")
    
 
         #Reihe4
         i=0
-        E_4_0.set_text("")    
+        self.E_4_0.set_text("")    
         k=4+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_0.set_text(x)
+            self.E_4_0.set_text(x)
         except:
-            E_4_0.set_text("")
+            self.E_4_0.set_text("")
 
 
         i=1
-        E_4_1.set_text("")    
+        self.E_4_1.set_text("")    
         k=4+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_4_1.set_text(x)
+            self.E_4_1.set_text(x)
         except:
-            E_4_1.set_text("")
+            self.E_4_1.set_text("")
         
 
         i=2
-        E_4_2.set_text("")    
+        self.E_4_2.set_text("")    
         k=4+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_2.set_text(x)
+            self.E_4_2.set_text(x)
         except:
-            E_4_2.set_text("")
+            self.E_4_2.set_text("")
         
 
         i=3
-        E_4_3.set_text("")    
+        self.E_4_3.set_text("")    
         k=4+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_3.set_text(x)
+            self.E_4_3.set_text(x)
         except:
-            E_4_3.set_text("")
+            self.E_4_3.set_text("")
     
         #Reihe5
         i=0
-        E_5_0.set_text("")    
+        self.E_5_0.set_text("")    
         k=5+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_0.set_text(x)
+            self.E_5_0.set_text(x)
         except:
-            E_5_0.set_text("")
+            self.E_5_0.set_text("")
 
 
         i=1
-        E_5_1.set_text("")   
+        self.E_5_1.set_text("")   
         k=5+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_5_1.set_text(x)
+            self.E_5_1.set_text(x)
         except:
-            E_5_1.set_text("")
+            self.E_5_1.set_text("")
         
 
         i=2
-        E_5_2.set_text("")    
+        self.E_5_2.set_text("")    
         k=5+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_2.set_text(x)
+            self.E_5_2.set_text(x)
         except:
-            E_5_2.set_text("")
+            self.E_5_2.set_text("")
         
 
         i=3
-        E_5_3.set_text("")   
+        self.E_5_3.set_text("")   
         k=5+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_3.set_text(x)
+            self.E_5_3.set_text(x)
         except:
-            E_5_3.set_text("")
+            self.E_5_3.set_text("")
 
         #Reihe6
         i=0
-        E_6_0.set_text("")  
+        self.E_6_0.set_text("")  
         k=6+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_0.set_text(x)
+            self.E_6_0.set_text(x)
         except:
-            E_6_0.set_text("")
+            self.E_6_0.set_text("")
 
 
         
 
 
         i=1
-        E_6_1.set_text("") 
+        self.E_6_1.set_text("") 
         k=6+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_6_1.set_text(x)
+            self.E_6_1.set_text(x)
         except:
-            E_6_1.set_text("")
+            self.E_6_1.set_text("")
         
 
         i=2
-        E_6_2.set_text("")    
+        self.E_6_2.set_text("")    
         k=6+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_2.set_text(x)
+            self.E_6_2.set_text(x)
         except:
-            E_6_2.set_text("")
+            self.E_6_2.set_text("")
         
 
         i=3
-        E_6_3.set_text("")    
+        self.E_6_3.set_text("")    
         k=6+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_3.set_text(x)
+            self.E_6_3.set_text(x)
         except:
-            E_6_3.set_text("")
+            self.E_6_3.set_text("")
 
         #Reihe7
         i=0
-        E_7_0.set_text("")   
+        self.E_7_0.set_text("")   
         k=7+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_0.set_text(x)
+            self.E_7_0.set_text(x)
         except:
-            E_7_0.set_text("")
+            self.E_7_0.set_text("")
 
 
         i=1
-        E_7_1.set_text("")    
+        self.E_7_1.set_text("")    
         k=7+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_7_1.set_text(x)
+            self.E_7_1.set_text(x)
         except:
-            E_7_1.set_text("")
+            self.E_7_1.set_text("")
         
 
         i=2
-        E_7_2.set_text("")    
+        self.E_7_2.set_text("")    
         k=7+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_2.set_text(x)
+            self.E_7_2.set_text(x)
         except:
-            E_7_2.set_text("")
+            self.E_7_2.set_text("")
         
 
         i=3
-        E_7_3.set_text("")    
+        self.E_7_3.set_text("")    
         k=7+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_3.set_text(x)
+            self.E_7_3.set_text(x)
         except:
-            E_7_3.set_text("")
+            self.E_7_3.set_text("")
 
         #Reihe8
         i=0
-        E_8_0.set_text("")    
+        self.E_8_0.set_text("")    
         k=8+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_0.set_text(x)
+            self.E_8_0.set_text(x)
         except:
-            E_8_0.set_text("")
+            self.E_8_0.set_text("")
 
 
         i=1
-        E_8_1.set_text("")    
+        self.E_8_1.set_text("")    
         k=8+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_8_1.set_text(x)
+            self.E_8_1.set_text(x)
         except:
-            E_8_1.set_text("")
+            self.E_8_1.set_text("")
         
 
         i=2
-        E_8_2.set_text("")    
+        self.E_8_2.set_text("")    
         k=8+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_2.set_text(x)
+            self.E_8_2.set_text(x)
         except:
-            E_8_2.set_text("")
+            self.E_8_2.set_text("")
         
 
         i=3
-        E_8_3.set_text("")    
+        self.E_8_3.set_text("")    
         k=8+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_3.set_text(x)
+            self.E_8_3.set_text(x)
         except:
-            E_8_3.set_text("")
+            self.E_8_3.set_text("")
 
         #Reihe9
         i=0
-        E_9_0.set_text("")    
+        self.E_9_0.set_text("")    
         k=9+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_0.set_text(x)
+            self.E_9_0.set_text(x)
         except:
-            E_9_0.set_text("")
+            self.E_9_0.set_text("")
 
 
         i=1
-        E_9_1.set_text("")   
+        self.E_9_1.set_text("")   
         k=9+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_9_1.set_text(x)
+            self.E_9_1.set_text(x)
         except:
-            E_9_1.set_text("")
+            self.E_9_1.set_text("")
         
 
         i=2
-        E_9_2.set_text("")   
+        self.E_9_2.set_text("")   
         k=9+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_2.set_text(x)
+            self.E_9_2.set_text(x)
         except:
-            E_9_2.set_text("")
+            self.E_9_2.set_text("")
         
 
         i=3
-        E_9_3.set_text("")    
+        self.E_9_3.set_text("")    
         k=9+(s_zahl_1-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_3.set_text(x)
+            self.E_9_3.set_text(x)
         except:
-            E_9_3.set_text("")
+            self.E_9_3.set_text("")
 
     def updateGets(self):
         #Gets
-        E_0_0 = builder.get_object("Get_Id_0")
-        E_1_0 = builder.get_object("Get_Id_1")
-        E_2_0 = builder.get_object("Get_Id_2")
-        E_3_0 = builder.get_object("Get_Id_3")
-        E_4_0 = builder.get_object("Get_Id_4")
-        E_5_0 = builder.get_object("Get_Id_5")
-        E_6_0 = builder.get_object("Get_Id_6")
-        E_7_0 = builder.get_object("Get_Id_7")
-        E_8_0 = builder.get_object("Get_Id_8")
-        E_9_0 = builder.get_object("Get_Id_9")
+        self.E_0_0 = self.builder.get_object("Get_Id_0")
+        self.E_1_0 = self.builder.get_object("Get_Id_1")
+        self.E_2_0 = self.builder.get_object("Get_Id_2")
+        self.E_3_0 = self.builder.get_object("Get_Id_3")
+        self.E_4_0 = self.builder.get_object("Get_Id_4")
+        self.E_5_0 = self.builder.get_object("Get_Id_5")
+        self.E_6_0 = self.builder.get_object("Get_Id_6")
+        self.E_7_0 = self.builder.get_object("Get_Id_7")
+        self.E_8_0 = self.builder.get_object("Get_Id_8")
+        self.E_9_0 = self.builder.get_object("Get_Id_9")
         
-        E_0_1 = builder.get_object("Get_NSC_0")
-        E_1_1 = builder.get_object("Get_NSC_1")
-        E_2_1 = builder.get_object("Get_NSC_2")
-        E_3_1 = builder.get_object("Get_NSC_3")
-        E_4_1 = builder.get_object("Get_NSC_4")
-        E_5_1 = builder.get_object("Get_NSC_5")
-        E_6_1 = builder.get_object("Get_NSC_6")
-        E_7_1 = builder.get_object("Get_NSC_7")
-        E_8_1 = builder.get_object("Get_NSC_8")
-        E_9_1 = builder.get_object("Get_NSC_9")
+        self.E_0_1 = self.builder.get_object("Get_NSC_0")
+        self.E_1_1 = self.builder.get_object("Get_NSC_1")
+        self.E_2_1 = self.builder.get_object("Get_NSC_2")
+        self.E_3_1 = self.builder.get_object("Get_NSC_3")
+        self.E_4_1 = self.builder.get_object("Get_NSC_4")
+        self.E_5_1 = self.builder.get_object("Get_NSC_5")
+        self.E_6_1 = self.builder.get_object("Get_NSC_6")
+        self.E_7_1 = self.builder.get_object("Get_NSC_7")
+        self.E_8_1 = self.builder.get_object("Get_NSC_8")
+        self.E_9_1 = self.builder.get_object("Get_NSC_9")
         
-        E_0_2 = builder.get_object("Get_UserId_0")
-        E_1_2 = builder.get_object("Get_UserId_1")
-        E_2_2 = builder.get_object("Get_UserId_2")
-        E_3_2 = builder.get_object("Get_UserId_3")
-        E_4_2 = builder.get_object("Get_UserId_4")
-        E_5_2 = builder.get_object("Get_UserId_5")
-        E_6_2 = builder.get_object("Get_UserId_6")
-        E_7_2 = builder.get_object("Get_UserId_7")
-        E_8_2 = builder.get_object("Get_UserId_8")
-        E_9_2 = builder.get_object("Get_UserId_9")
+        self.E_0_2 = self.builder.get_object("Get_UserId_0")
+        self.E_1_2 = self.builder.get_object("Get_UserId_1")
+        self.E_2_2 = self.builder.get_object("Get_UserId_2")
+        self.E_3_2 = self.builder.get_object("Get_UserId_3")
+        self.E_4_2 = self.builder.get_object("Get_UserId_4")
+        self.E_5_2 = self.builder.get_object("Get_UserId_5")
+        self.E_6_2 = self.builder.get_object("Get_UserId_6")
+        self.E_7_2 = self.builder.get_object("Get_UserId_7")
+        self.E_8_2 = self.builder.get_object("Get_UserId_8")
+        self.E_9_2 = self.builder.get_object("Get_UserId_9")
         
-        E_0_3 = builder.get_object("Get_DevId_0")
-        E_1_3 = builder.get_object("Get_DevId_1")
-        E_2_3 = builder.get_object("Get_DevId_2")
-        E_3_3 = builder.get_object("Get_DevId_3")
-        E_4_3 = builder.get_object("Get_DevId_4")
-        E_5_3 = builder.get_object("Get_DevId_5")
-        E_6_3 = builder.get_object("Get_DevId_6")
-        E_7_3 = builder.get_object("Get_DevId_7")
-        E_8_3 = builder.get_object("Get_DevId_8")
-        E_9_3 = builder.get_object("Get_DevId_9")
+        self.E_0_3 = self.builder.get_object("Get_DevId_0")
+        self.E_1_3 = self.builder.get_object("Get_DevId_1")
+        self.E_2_3 = self.builder.get_object("Get_DevId_2")
+        self.E_3_3 = self.builder.get_object("Get_DevId_3")
+        self.E_4_3 = self.builder.get_object("Get_DevId_4")
+        self.E_5_3 = self.builder.get_object("Get_DevId_5")
+        self.E_6_3 = self.builder.get_object("Get_DevId_6")
+        self.E_7_3 = self.builder.get_object("Get_DevId_7")
+        self.E_8_3 = self.builder.get_object("Get_DevId_8")
+        self.E_9_3 = self.builder.get_object("Get_DevId_9")
         
-        E_0_4 = builder.get_object("Get_Date_0")
-        E_1_4 = builder.get_object("Get_Date_1")
-        E_2_4 = builder.get_object("Get_Date_2")
-        E_3_4 = builder.get_object("Get_Date_3")
-        E_4_4 = builder.get_object("Get_Date_4")
-        E_5_4 = builder.get_object("Get_Date_5")
-        E_6_4 = builder.get_object("Get_Date_6")
-        E_7_4 = builder.get_object("Get_Date_7")
-        E_8_4 = builder.get_object("Get_Date_8")
-        E_9_4 = builder.get_object("Get_Date_9")
+        self.E_0_4 = self.builder.get_object("Get_Date_0")
+        self.E_1_4 = self.builder.get_object("Get_Date_1")
+        self.E_2_4 = self.builder.get_object("Get_Date_2")
+        self.E_3_4 = self.builder.get_object("Get_Date_3")
+        self.E_4_4 = self.builder.get_object("Get_Date_4")
+        self.E_5_4 = self.builder.get_object("Get_Date_5")
+        self.E_6_4 = self.builder.get_object("Get_Date_6")
+        self.E_7_4 = self.builder.get_object("Get_Date_7")
+        self.E_8_4 = self.builder.get_object("Get_Date_8")
+        self.E_9_4 = self.builder.get_object("Get_Date_9")
         
               
         
@@ -1747,569 +1752,567 @@ class Handler:
 
         #Reihe 0
         i=0
-        E_0_0.set_text("")    
+        self.E_0_0.set_text("")    
         k=0+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_0.set_text(x)
+            self.E_0_0.set_text(x)
         except:
-            E_0_0.set_text("")
+            self.E_0_0.set_text("")
 
 
         i=1
-        E_0_1.set_text("")    
+        self.E_0_1.set_text("")    
         k=0+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_0_1.set_text(x)
+            self.E_0_1.set_text(x)
         except:
-            E_0_1.set_text("")
+            self.E_0_1.set_text("")
         
 
         i=2
-        E_0_2.set_text("")    
+        self.E_0_2.set_text("")    
         k=0+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_2.set_text(x)
+            self.E_0_2.set_text(x)
         except:
-            E_0_2.set_text("")
+            self.E_0_2.set_text("")
         
 
         i=3
-        E_0_3.set_text("")    
+        self.E_0_3.set_text("")    
         k=0+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_3.set_text(x)
+            self.E_0_3.set_text(x)
         except:
-            E_0_3.set_text("")
+            self.E_0_3.set_text("")
 
 
         i=4
-        E_0_4.set_text("")    
+        self.E_0_4.set_text("")    
         k=0+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_0_4.set_text(x)
+            self.E_0_4.set_text(x)
         except:
-            E_0_4.set_text("")
+            self.E_0_4.set_text("")
 
         #Reihe1
         i=0
-        E_1_0.set_text("")    
+        self.E_1_0.set_text("")    
         k=1+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_0.set_text(x)
+            self.E_1_0.set_text(x)
         except:
-            E_1_0.set_text("")
+            self.E_1_0.set_text("")
 
 
         i=1
-        E_1_1.set_text("")    
+        self.E_1_1.set_text("")    
         k=1+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_1_1.set_text(x)
+            self.E_1_1.set_text(x)
         except:
-            E_1_1.set_text("")
+            self.E_1_1.set_text("")
         
 
         i=2
-        E_1_2.set_text("")    
+        self.E_1_2.set_text("")    
         k=1+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_2.set_text(x)
+            self.E_1_2.set_text(x)
         except:
-            E_1_2.set_text("")
+            self.E_1_2.set_text("")
         
 
         i=3
-        E_1_3.set_text("")    
+        self.E_1_3.set_text("")    
         k=1+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_3.set_text(x)
+            self.E_1_3.set_text(x)
         except:
-            E_1_3.set_text("")
+            self.E_1_3.set_text("")
 
 
         i=4
-        E_1_4.set_text("")    
+        self.E_1_4.set_text("")    
         k=1+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_1_4.set_text(x)
+            self.E_1_4.set_text(x)
         except:
-            E_1_4.set_text("")
+            self.E_1_4.set_text("")
         
         #Reihe2
         i=0
-        E_2_0.set_text("")    
+        self.E_2_0.set_text("")    
         k=2+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_0.set_text(x)
+            self.E_2_0.set_text(x)
         except:
-            E_2_0.set_text("")
+            self.E_2_0.set_text("")
 
 
         i=1
-        E_2_1.set_text("")    
+        self.E_2_1.set_text("")    
         k=2+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_2_1.set_text(x)
+            self.E_2_1.set_text(x)
         except:
-            E_2_1.set_text("")
+            self.E_2_1.set_text("")
         
 
         i=2
-        E_2_2.set_text("")    
+        self.E_2_2.set_text("")    
         k=2+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_2.set_text(x)
+            self.E_2_2.set_text(x)
         except:
-            E_2_2.set_text("")
+            self.E_2_2.set_text("")
         
 
         i=3
-        E_2_3.set_text("")    
+        self.E_2_3.set_text("")    
         k=2+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_3.set_text(x)
+            self.E_2_3.set_text(x)
         except:
-            E_2_3.set_text("")
+            self.E_2_3.set_text("")
 
 
         i=4
-        E_2_4.set_text("")    
+        self.E_2_4.set_text("")    
         k=2+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_2_4.set_text(x)
+            self.E_2_4.set_text(x)
         except:
-            E_2_4.set_text("")
+            self.E_2_4.set_text("")
         
         #Reihe3
         i=0
-        E_3_0.set_text("")    
+        self.E_3_0.set_text("")    
         k=3+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_0.set_text(x)
+            self.E_3_0.set_text(x)
         except:
-            E_3_0.set_text("")
+            self.E_3_0.set_text("")
 
 
         i=1
-        E_3_1.set_text("")    
+        self.E_3_1.set_text("")    
         k=3+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_3_1.set_text(x)
+            self.E_3_1.set_text(x)
         except:
-            E_3_1.set_text("")
+            self.E_3_1.set_text("")
         
 
         i=2
-        E_3_2.set_text("")    
+        self.E_3_2.set_text("")    
         k=3+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_2.set_text(x)
+            self.E_3_2.set_text(x)
         except:
-            E_3_2.set_text("")
+            self.E_3_2.set_text("")
         
 
         i=3
-        E_3_3.set_text("")    
+        self.E_3_3.set_text("")    
         k=3+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_3.set_text(x)
+            self.E_3_3.set_text(x)
         except:
-            E_3_3.set_text("")
+            self.E_3_3.set_text("")
 
 
 
         i=4
-        E_3_4.set_text("")    
+        self.E_3_4.set_text("")    
         k=3+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_3_4.set_text(x)
+            self.E_3_4.set_text(x)
         except:
-            E_3_4.set_text("")
+            self.E_3_4.set_text("")
 
         #Reihe4
         i=0
-        E_4_0.set_text("")    
+        self.E_4_0.set_text("")    
         k=4+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_0.set_text(x)
+            self.E_4_0.set_text(x)
         except:
-            E_4_0.set_text("")
+            self.E_4_0.set_text("")
 
 
         i=1
-        E_4_1.set_text("")    
+        self.E_4_1.set_text("")    
         k=4+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_4_1.set_text(x)
+            self.E_4_1.set_text(x)
         except:
-            E_4_1.set_text("")
+            self.E_4_1.set_text("")
         
 
         i=2
-        E_4_2.set_text("")    
+        self.E_4_2.set_text("")    
         k=4+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_2.set_text(x)
+            self.E_4_2.set_text(x)
         except:
-            E_4_2.set_text("")
+            self.E_4_2.set_text("")
         
 
         i=3
-        E_4_3.set_text("")    
+        self.E_4_3.set_text("")    
         k=4+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_3.set_text(x)
+            self.E_4_3.set_text(x)
         except:
-            E_4_3.set_text("")
+            self.E_4_3.set_text("")
 
 
         i=4
-        E_4_4.set_text("")    
+        self.E_4_4.set_text("")    
         k=4+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_4_4.set_text(x)
+            self.E_4_4.set_text(x)
         except:
-            E_4_4.set_text("")
+            self.E_4_4.set_text("")
         
         #Reihe5
         i=0
-        E_5_0.set_text("")    
+        self.E_5_0.set_text("")    
         k=5+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_0.set_text(x)
+            self.E_5_0.set_text(x)
         except:
-            E_5_0.set_text("")
+            self.E_5_0.set_text("")
 
 
         i=1
-        E_5_1.set_text("")   
+        self.E_5_1.set_text("")   
         k=5+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_5_1.set_text(x)
+            self.E_5_1.set_text(x)
         except:
-            E_5_1.set_text("")
+            self.E_5_1.set_text("")
         
 
         i=2
-        E_5_2.set_text("")    
+        self.E_5_2.set_text("")    
         k=5+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_2.set_text(x)
+            self.E_5_2.set_text(x)
         except:
-            E_5_2.set_text("")
+            self.E_5_2.set_text("")
         
 
         i=3
-        E_5_3.set_text("")   
+        self.E_5_3.set_text("")   
         k=5+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_3.set_text(x)
+            self.E_5_3.set_text(x)
         except:
-            E_5_3.set_text("")
+            self.E_5_3.set_text("")
 
 
         i=4
-        E_5_4.set_text("")   
+        self.E_5_4.set_text("")   
         k=5+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_5_4.set_text(x)
+            self.E_5_4.set_text(x)
         except:
-            E_5_4.set_text("")
+            self.E_5_4.set_text("")
         
         #Reihe6
         i=0
-        E_6_0.set_text("")  
+        self.E_6_0.set_text("")  
         k=6+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_0.set_text(x)
+            self.E_6_0.set_text(x)
         except:
-            E_6_0.set_text("")
+            self.E_6_0.set_text("")
 
 
         
 
 
         i=1
-        E_6_1.set_text("") 
+        self.E_6_1.set_text("") 
         k=6+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_6_1.set_text(x)
+            self.E_6_1.set_text(x)
         except:
-            E_6_1.set_text("")
+            self.E_6_1.set_text("")
         
 
         i=2
-        E_6_2.set_text("")    
+        self.E_6_2.set_text("")    
         k=6+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_2.set_text(x)
+            self.E_6_2.set_text(x)
         except:
-            E_6_2.set_text("")
+            self.E_6_2.set_text("")
         
 
         i=3
-        E_6_3.set_text("")    
+        self.E_6_3.set_text("")    
         k=6+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_3.set_text(x)
+            self.E_6_3.set_text(x)
         except:
-            E_6_3.set_text("")
+            self.E_6_3.set_text("")
 
 
         i=4
-        E_6_4.set_text("")    
+        self.E_6_4.set_text("")    
         k=6+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_6_4.set_text(x)
+            self.E_6_4.set_text(x)
         except:
-            E_6_4.set_text("")
+            self.E_6_4.set_text("")
         
         #Reihe7
         i=0
-        E_7_0.set_text("")   
+        self.E_7_0.set_text("")   
         k=7+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_0.set_text(x)
+            self.E_7_0.set_text(x)
         except:
-            E_7_0.set_text("")
+            self.E_7_0.set_text("")
 
 
         i=1
-        E_7_1.set_text("")    
+        self.E_7_1.set_text("")    
         k=7+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_7_1.set_text(x)
+            self.E_7_1.set_text(x)
         except:
-            E_7_1.set_text("")
+            self.E_7_1.set_text("")
         
 
         i=2
-        E_7_2.set_text("")    
+        self.E_7_2.set_text("")    
         k=7+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_2.set_text(x)
+            self.E_7_2.set_text(x)
         except:
-            E_7_2.set_text("")
+            self.E_7_2.set_text("")
         
 
         i=3
-        E_7_3.set_text("")    
+        self.E_7_3.set_text("")    
         k=7+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_3.set_text(x)
+            self.E_7_3.set_text(x)
         except:
-            E_7_3.set_text("")
+            self.E_7_3.set_text("")
 
 
         i=4
-        E_7_4.set_text("")    
+        self.E_7_4.set_text("")    
         k=7+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_7_4.set_text(x)
+            self.E_7_4.set_text(x)
         except:
-            E_7_4.set_text("")
+            self.E_7_4.set_text("")
         
         #Reihe8
         i=0
-        E_8_0.set_text("")    
+        self.E_8_0.set_text("")    
         k=8+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_0.set_text(x)
+            self.E_8_0.set_text(x)
         except:
-            E_8_0.set_text("")
+            self.E_8_0.set_text("")
 
 
         i=1
-        E_8_1.set_text("")    
+        self.E_8_1.set_text("")    
         k=8+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_8_1.set_text(x)
+            self.E_8_1.set_text(x)
         except:
-            E_8_1.set_text("")
+            self.E_8_1.set_text("")
         
 
         i=2
-        E_8_2.set_text("")    
+        self.E_8_2.set_text("")    
         k=8+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_2.set_text(x)
+            self.E_8_2.set_text(x)
         except:
-            E_8_2.set_text("")
+            self.E_8_2.set_text("")
         
 
         i=3
-        E_8_3.set_text("")    
+        self.E_8_3.set_text("")    
         k=8+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_3.set_text(x)
+            self.E_8_3.set_text(x)
         except:
-            E_8_3.set_text("")
+            self.E_8_3.set_text("")
 
 
         i=4
-        E_8_4.set_text("")    
+        self.E_8_4.set_text("")    
         k=8+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_8_4.set_text(x)
+            self.E_8_4.set_text(x)
         except:
-            E_8_4.set_text("")
+            self.E_8_4.set_text("")
         
         #Reihe9
         i=0
-        E_9_0.set_text("")    
+        self.E_9_0.set_text("")    
         k=9+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_0.set_text(x)
+            self.E_9_0.set_text(x)
         except:
-            E_9_0.set_text("")
+            self.E_9_0.set_text("")
 
 
         i=1
-        E_9_1.set_text("")   
+        self.E_9_1.set_text("")   
         k=9+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
             print("x ",x)
-            E_9_1.set_text(x)
+            self.E_9_1.set_text(x)
         except:
-            E_9_1.set_text("")
+            self.E_9_1.set_text("")
         
 
         i=2
-        E_9_2.set_text("")   
+        self.E_9_2.set_text("")   
         k=9+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_2.set_text(x)
+            self.E_9_2.set_text(x)
         except:
-            E_9_2.set_text("")
+            self.E_9_2.set_text("")
         
 
         i=3
-        E_9_3.set_text("")    
+        self.E_9_3.set_text("")    
         k=9+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_3.set_text(x)
+            self.E_9_3.set_text(x)
         except:
-            E_9_3.set_text("")
+            self.E_9_3.set_text("")
 
 
         i=4
-        E_9_4.set_text("")    
+        self.E_9_4.set_text("")    
         k=9+(s_zahl_2-1)*10
         x=""
         try:
             x=str(row_x[k][i])
-            E_9_4.set_text(x)
+            self.E_9_4.set_text(x)
         except:
-            E_9_4.set_text("")
-
-
+            self.E_9_4.set_text("")
 
 def main():
     if os.path.exists("/usr/local/share/topman/database.db") == False:
@@ -2320,14 +2323,8 @@ def main():
         cursor.execute('''CREATE TABLE Gets(getId INTEGER PRIMARY KEY,getUser TEXT,getUserId INTEGER,getDevId INTEGER,getDate TEXT)''')
         connection.commit()
         connection.close()
-    builder = Gtk.Builder()
-    builder.add_from_file(UI_FILE)
-    window = builder.get_object('mainWindow')
-    Handler.updateDev(Handler)
-    Handler.updateUser(Handler)
-    Handler.updateGets(Handler)
-    builder.connect_signals(Handler())
-    window.show_all()
+    app = Handler()
+    
     Gtk.main()
         
 if __name__ == "__main__":

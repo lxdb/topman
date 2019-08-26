@@ -3,7 +3,7 @@ Maximized=1
 Geometry=1850x1016+70+27
 
 [File Loader]
-Files=../../src/topman#15
+Files=../../src/topman#8
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
