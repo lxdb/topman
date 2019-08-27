@@ -48,7 +48,9 @@ class Handler:
         self.builder = Gtk.Builder()
         self.builder.add_from_file(UI_FILE)
         window = self.builder.get_object('mainWindow')
-        
+        self.updateDev()
+        self.updateUser()
+        self.updateGets()
         self.builder.connect_signals(self)
     
         window.show_all()
